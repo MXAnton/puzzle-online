@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Puzzle Online</title>
+
+    <link rel="stylesheet" href="css/main.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Create Your Own Puzzle</h1>
+
+      <form onsubmit="generatePuzzle(event)">
+        <label for="image-input">Puzzle image:</label>
+        <input
+          type="file"
+          id="image-input"
+          name="image-input"
+          accept="image/png, image/jpeg, image/jpg, .png, .jpg, .jpeg"
+          required
+        />
+
+        <label for="width-input">Puzzle width:</label>
+        <select id="width-input" name="width-input">
+          <option value="4" selected>4</option>
+          <option value="8">8</option>
+          <option value="16">16</option>
+          <option value="32">32</option>
+        </select>
+        <label for="height-input">Puzzle height:</label>
+        <select id="height-input" name="height-input">
+          <option value="4" selected>4</option>
+          <option value="8">8</option>
+          <option value="16">16</option>
+          <option value="32">32</option>
+        </select>
+
+        <input type="submit" value="Generate Puzzle" />
+      </form>
+
+      <nav><button onclick="toggleShowImage()">Show Image</button></nav>
+    </header>
+    <main>
+      <div id="image" style="display: none">
+        <img src="#" alt="Puzzle image" />
+      </div>
+      <!-- <div id="board"></div> -->
+      <canvas id="puzzleCanvas" width="400" height="400"></canvas>
+    </main>
+
+    <script src="js/main.js"></script>
+  </body>
+</html>
