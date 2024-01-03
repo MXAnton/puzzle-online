@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Puzzle Online</title>
 
-    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" type="text/css" href="css/main.css" />
   </head>
   <body>
     <header>
@@ -21,15 +21,15 @@
           required
         />
 
-        <label for="width-input">Puzzle width:</label>
-        <select id="width-input" name="width-input">
+        <label for="puzzle-columns-input">Puzzle columns:</label>
+        <select id="puzzle-columns-input" name="puzzle-columns-input">
           <option value="4" selected>4</option>
           <option value="8">8</option>
           <option value="16">16</option>
           <option value="32">32</option>
         </select>
-        <label for="height-input">Puzzle height:</label>
-        <select id="height-input" name="height-input">
+        <label for="puzzle-rows-input">Puzzle rows:</label>
+        <select id="puzzle-rows-input" name="puzzle-rows-input">
           <option value="4" selected>4</option>
           <option value="8">8</option>
           <option value="16">16</option>
@@ -45,7 +45,7 @@
       <div id="image" style="display: none">
         <img src="#" alt="Puzzle image" />
       </div>
-      <!-- <div id="board"></div> -->
+
       <canvas id="puzzleCanvas" width="400" height="400"></canvas>
     </main>
 
