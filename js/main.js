@@ -4,6 +4,10 @@ const puzzleRowsInput = document.getElementById("puzzle-rows-input");
 
 const canvas = document.getElementById("puzzleCanvas");
 const ctx = canvas.getContext("2d");
+// Set the font and text properties
+ctx.font = "16px Arial";
+ctx.fillStyle = "red";
+
 const pieces = [];
 let selectedPiece = null;
 
@@ -13,10 +17,13 @@ let puzzleRows = 0;
 let sceneWidth = 400;
 let sceneHeight = 400;
 
+let pieceWidth;
+let pieceHeight;
+
 // in decimal percentage
 const puzzleBoardPadding = 0.5;
 
-let zoomLevel = 0.1; // 0.1-1 (0.1 is full view visbile)
+let zoomLevel = 1; // 1-x (1 is full view visbile)
 let viewOffsetX = 0; // 0-x
 let viewOffsetY = 0; // 0-y
 
@@ -48,8 +55,10 @@ function generatePuzzle(event) {
     imageSrc = e.target.result;
     imageShow.src = imageSrc;
 
-    sceneWidth = canvas.width * (1 + puzzleBoardPadding);
-    sceneHeight = canvas.height * (1 + puzzleBoardPadding);
+    zoomLevel = 1;
+
+    sceneWidth = canvas.width * zoomLevel;
+    sceneHeight = canvas.height * zoomLevel;
 
     // Start in center
     viewOffsetX = (sceneWidth - canvas.width) / 2;
@@ -65,8 +74,8 @@ function generatePuzzle(event) {
     // Wait for the image to load
     image.onload = function () {
       // Cut the image into 4 rows and 4 columns
-      const pieceWidth = canvas.width / puzzleColumns;
-      const pieceHeight = canvas.height / puzzleRows;
+      pieceWidth = sceneWidth / (1 + puzzleBoardPadding) / puzzleColumns;
+      pieceHeight = sceneHeight / (1 + puzzleBoardPadding) / puzzleRows;
 
       for (let row = 0; row < puzzleRows; row++) {
         for (let col = 0; col < puzzleColumns; col++) {
@@ -74,8 +83,8 @@ function generatePuzzle(event) {
           const piece = {
             correctCol: col,
             correctRow: row,
-            x: getRandomInt(canvas.width - pieceWidth) + viewOffsetX,
-            y: getRandomInt(canvas.height - pieceHeight) + viewOffsetY,
+            x: getRandomInt(sceneWidth - pieceWidth),
+            y: getRandomInt(sceneHeight - pieceHeight),
             width: pieceWidth,
             height: pieceHeight,
             isDragging: false,
@@ -106,18 +115,17 @@ function drawPuzzlePieces() {
   pieces.sort((a, b) => a.zIndex - b.zIndex);
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.save(); // Save the current state of the context
-
-  // Apply zoom transformation
-  // ctx.scale(zoomLevel, zoomLevel);
 
   pieces.forEach((piece) => {
-    // ctx.drawImage(image, piece.x, piece.y, piece.width, piece.height);
     // Draw only the corresponding part of the image for each puzzle piece
     ctx.drawImage(
       image,
-      piece.correctCol * piece.width * (image.width / canvas.width),
-      piece.correctRow * piece.height * (image.height / canvas.height),
+      piece.correctCol *
+        piece.width *
+        (image.width / (sceneWidth / (1 + puzzleBoardPadding))),
+      piece.correctRow *
+        piece.height *
+        (image.height / (sceneHeight / (1 + puzzleBoardPadding))),
       image.width / puzzleColumns,
       image.height / puzzleRows, // Source region (entire image)
       piece.x - viewOffsetX,
@@ -127,7 +135,12 @@ function drawPuzzlePieces() {
     );
   });
 
-  // ctx.restore(); // Restore the saved state (undo the zoom transformation)
+  // Draw text on the canvas
+  ctx.fillText("Zoom: " + zoomLevel + "x", 5, 21);
+  ctx.fillText("Scene width: " + sceneWidth + "px", 5, 37);
+  ctx.fillText("Scene height: " + sceneHeight + "px", 5, 53);
+  ctx.fillText("Canvas width: " + canvas.width + "px", 5, 67);
+  ctx.fillText("Canvas height: " + canvas.height + "px", 5, 83);
 }
 
 function handleMouseDown(event) {
@@ -179,28 +192,23 @@ function handleMouseMove(event) {
   let draw = false;
 
   if (selectedPiece && selectedPiece.isDragging) {
-    const globalMouseX = event.clientX - canvas.getBoundingClientRect().left;
-    const globalMouseY = event.clientY - canvas.getBoundingClientRect().top;
+    const mouseX = event.clientX - canvas.getBoundingClientRect().left;
+    const mouseY = event.clientY - canvas.getBoundingClientRect().top;
 
-    const mouseX = globalMouseX;
-    const mouseY = globalMouseY;
-    // const mouseY = globalMouseY / zoomLevel;
+    let x = mouseX - selectedPiece.offset.x + viewOffsetX;
+    let y = mouseY - selectedPiece.offset.y + viewOffsetY;
 
-    let x = mouseX - selectedPiece.offset.x;
-    let y = mouseY - selectedPiece.offset.y;
+    x = Math.floor(x / (pieceWidth / 10)) * (pieceWidth / 10);
+    y = Math.floor(y / (pieceWidth / 10)) * (pieceWidth / 10);
 
-    // Make sure the element stays within the parent container
-    // x = Math.min(Math.max(x, 0), canvas.width - selectedPiece.width);
-    // y = Math.min(Math.max(y, 0), canvas.offsetHeight - selectedPiece.height);
-
-    x += viewOffsetX;
-    y += viewOffsetY;
-
-    x = Math.min(Math.max(x, 0), sceneWidth - selectedPiece.width);
-    y = Math.min(Math.max(y, 0), sceneHeight - selectedPiece.height);
-
-    selectedPiece.x = x;
-    selectedPiece.y = y;
+    selectedPiece.x = Math.min(
+      Math.max(x, 0),
+      sceneWidth - selectedPiece.width
+    );
+    selectedPiece.y = Math.min(
+      Math.max(y, 0),
+      sceneHeight - selectedPiece.height
+    );
 
     draw = true;
   }
@@ -241,15 +249,38 @@ function handleMouseWheel(event) {
   // Prevent the default behavior of the mouse wheel (e.g., page scrolling)
   event.preventDefault();
 
+  zoomChange(event);
+}
+
+function zoomChange(event) {
   // Adjust zoom level based on the direction of the mouse wheel
   zoomLevel += event.deltaY > 0 ? -0.1 : 0.1;
 
   // Ensure zoom level is within reasonable bounds
-  zoomLevel = Math.max(0.1, Math.min(1, zoomLevel));
+  zoomLevel = Math.max(1, Math.min(2, zoomLevel));
+  zoomLevel = Math.floor(zoomLevel * 10) / 10;
 
-  // Update view offsets based on zoom level
-  // viewOffsetX *= zoomLevel;
-  // viewOffsetY *= zoomLevel;
+  const oldSceneWidth = sceneWidth;
+  const oldSceneHeight = sceneHeight;
+
+  sceneWidth = canvas.width * zoomLevel;
+  sceneHeight = canvas.height * zoomLevel;
+
+  viewOffsetX *= sceneWidth / oldSceneWidth;
+  viewOffsetY *= sceneHeight / oldSceneHeight;
+
+  viewOffsetX = Math.max(0, Math.min(sceneWidth - canvas.width, viewOffsetX));
+  viewOffsetY = Math.max(0, Math.min(sceneHeight - canvas.height, viewOffsetY));
+
+  pieceWidth = sceneWidth / (1 + puzzleBoardPadding) / puzzleColumns;
+  pieceHeight = sceneHeight / (1 + puzzleBoardPadding) / puzzleRows;
+
+  pieces.forEach((piece) => {
+    piece.width = pieceWidth;
+    piece.height = pieceHeight;
+    piece.x *= sceneWidth / oldSceneWidth;
+    piece.y *= sceneHeight / oldSceneHeight;
+  });
 
   // Draw the puzzle pieces with the updated zoom level
   drawPuzzlePieces();
