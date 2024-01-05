@@ -39,7 +39,17 @@
         <input type="submit" value="Generate Puzzle" />
       </form>
 
-      <nav><button onclick="toggleShowImage()">Show Image</button></nav>
+      <nav>
+        <button onclick="toggleShowImage()">Show Image</button>
+        <label for="show-debug">Toggle debug:</label
+        ><input
+          type="checkbox"
+          name="show-debug"
+          id="show-debug"
+          checked
+          onchange="toggleDebug(event)"
+        />
+      </nav>
     </header>
     <main>
       <div id="image" style="display: none">

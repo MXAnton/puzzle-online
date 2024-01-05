@@ -135,12 +135,14 @@ function drawPuzzlePieces() {
     );
   });
 
-  // Draw text on the canvas
-  ctx.fillText("Zoom: " + zoomLevel + "x", 5, 21);
-  ctx.fillText("Scene width: " + sceneWidth + "px", 5, 37);
-  ctx.fillText("Scene height: " + sceneHeight + "px", 5, 53);
-  ctx.fillText("Canvas width: " + canvas.width + "px", 5, 67);
-  ctx.fillText("Canvas height: " + canvas.height + "px", 5, 83);
+  if (showDebug) {
+    // Draw text on the canvas
+    ctx.fillText("Zoom: " + zoomLevel + "x", 5, 21);
+    ctx.fillText("Scene width: " + sceneWidth + "px", 5, 37);
+    ctx.fillText("Scene height: " + sceneHeight + "px", 5, 53);
+    ctx.fillText("Canvas width: " + canvas.width + "px", 5, 67);
+    ctx.fillText("Canvas height: " + canvas.height + "px", 5, 83);
+  }
 }
 
 function handleMouseDown(event) {
@@ -294,6 +296,13 @@ function toggleShowImage() {
   } else {
     imageShowContainer.style.display = "none";
   }
+}
+
+let showDebug = true;
+function toggleDebug(event) {
+  showDebug = event.target.checked;
+
+  drawPuzzlePieces();
 }
 
 function getRandomInt(max) {
