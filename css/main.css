@@ -24,6 +24,11 @@ body {
   margin: 0;
 
   min-height: 100svh;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 * {
   letter-spacing: 0.02em;
@@ -161,8 +166,14 @@ label {
 
 main {
   width: 100%;
-  padding: 1rem;
+  height: 100%;
+  padding: 2rem;
   box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 main > nav {
@@ -182,12 +193,14 @@ main > nav .checkbox--primary label {
 }
 
 main > .wrapper {
-  width: 100%;
-  min-height: calc(100svh - 10rem);
   position: relative;
+
+  width: calc(min(100%, (100svh - 10rem) * (16/9)));
+  aspect-ratio: 16/9;
 }
 
 #puzzleCanvas {
+  position: absolute;
   display: block;
   box-shadow: 0 0 0 1px var(--green);
 }
@@ -205,6 +218,7 @@ main > .wrapper {
   opacity: 0.9;
   background-color: rgba(0, 0, 0, 0.274);
 
+  z-index: 2;
   pointer-events: none;
 }
 #image img {
