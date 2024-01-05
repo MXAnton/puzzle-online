@@ -39,7 +39,7 @@ function setCanvasStyle() {
     .querySelector("main")
     .querySelector(".wrapper");
   canvas.width = mainWrapperElement.clientWidth;
-  canvas.height = mainWrapperElement.clientWidth / (16 / 9);
+  canvas.height = mainWrapperElement.clientHeight;
   ctx.font = "16px Arial";
   ctx.fillStyle = "red";
 
