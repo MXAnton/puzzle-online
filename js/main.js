@@ -4,9 +4,6 @@ const puzzleRowsInput = document.getElementById("puzzle-rows-input");
 
 const canvas = document.getElementById("puzzleCanvas");
 const ctx = canvas.getContext("2d");
-// Set the font and text properties
-ctx.font = "16px Arial";
-ctx.fillStyle = "red";
 
 const pieces = [];
 let selectedPiece = null;
@@ -34,6 +31,23 @@ let imageSrc = null;
 let image = new Image();
 let imageScale = 1;
 
+let showDebug = true;
+
+setCanvasStyle();
+function setCanvasStyle() {
+  console.log("resize");
+  const mainWrapperElement = document
+    .querySelector("main")
+    .querySelector(".wrapper");
+  canvas.width = mainWrapperElement.clientWidth;
+  canvas.height = mainWrapperElement.clientWidth / (16 / 9);
+  ctx.font = "16px Arial";
+  ctx.fillStyle = "red";
+
+  zoomChange();
+}
+window.onresize = setCanvasStyle;
+
 function generatePuzzle(event) {
   event.preventDefault();
 
@@ -52,6 +66,8 @@ function generatePuzzle(event) {
 
   const reader = new FileReader();
   reader.onload = function (e) {
+    setCanvasStyle();
+
     imageSrc = e.target.result;
     imageShow.src = imageSrc;
 
@@ -251,10 +267,6 @@ function handleMouseWheel(event) {
   // Prevent the default behavior of the mouse wheel (e.g., page scrolling)
   event.preventDefault();
 
-  zoomChange(event);
-}
-
-function zoomChange(event) {
   // Adjust zoom level based on the direction of the mouse wheel
   zoomLevel += event.deltaY > 0 ? -0.1 : 0.1;
 
@@ -262,6 +274,10 @@ function zoomChange(event) {
   zoomLevel = Math.max(1, Math.min(2, zoomLevel));
   zoomLevel = Math.floor(zoomLevel * 10) / 10;
 
+  zoomChange();
+}
+
+function zoomChange() {
   const oldSceneWidth = sceneWidth;
   const oldSceneHeight = sceneHeight;
 
@@ -298,7 +314,6 @@ function toggleShowImage() {
   }
 }
 
-let showDebug = true;
 function toggleDebug(event) {
   showDebug = event.target.checked;
 

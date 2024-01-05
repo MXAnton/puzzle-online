@@ -3,6 +3,9 @@ body {
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   color: black;
   background-color: rgb(206, 206, 206);
+
+  padding: 0;
+  margin: 0;
 }
 
 header {
@@ -32,42 +35,17 @@ header nav {
 
 main {
   width: 100%;
+  padding: 1rem;
+  box-sizing: border-box;
+}
 
+main > .wrapper {
+  width: 100%;
   position: relative;
 }
 
 #puzzleCanvas {
-  border: 1px solid #000; /* Add border for better visualization */
-}
-#board {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 1/1;
-}
-
-.bite {
-  position: absolute;
-  top: 0;
-  left: 0;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: blue;
-
-  aspect-ratio: 1/1;
-}
-.size-4 .bite {
-  width: 20%;
-}
-.size-8 .bite {
-  width: 10%;
-}
-.size-16 .bite {
-  width: 6%;
-}
-.size-32 .bite {
-  width: 2.8%;
+  box-shadow: 0 0 0 1px black;
 }
 
 #image {
