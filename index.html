@@ -8,12 +8,15 @@
     <link rel="stylesheet" type="text/css" href="css/main.css" />
   </head>
   <body>
-    <header>
-      <h1>Create Your Own Puzzle</h1>
+    <dialog id="generate-modal">
+      <button class="modal__close-btn" onclick="closeGenerateModal()">X</button>
+
+      <h1>Generate Puzzle</h1>
 
       <form onsubmit="generatePuzzle(event)">
         <label for="image-input">Puzzle image:</label>
         <input
+          class="btn--primary"
           type="file"
           id="image-input"
           name="image-input"
@@ -22,36 +25,61 @@
         />
 
         <label for="puzzle-columns-input">Puzzle columns:</label>
-        <select id="puzzle-columns-input" name="puzzle-columns-input">
+        <select
+          id="puzzle-columns-input"
+          class="btn--primary"
+          name="puzzle-columns-input"
+        >
           <option value="4" selected>4</option>
           <option value="8">8</option>
           <option value="16">16</option>
           <option value="32">32</option>
         </select>
         <label for="puzzle-rows-input">Puzzle rows:</label>
-        <select id="puzzle-rows-input" name="puzzle-rows-input">
+        <select
+          id="puzzle-rows-input"
+          class="btn--primary"
+          name="puzzle-rows-input"
+        >
           <option value="4" selected>4</option>
           <option value="8">8</option>
           <option value="16">16</option>
           <option value="32">32</option>
         </select>
 
-        <input type="submit" value="Generate Puzzle" />
+        <input class="btn--secondary" type="submit" value="Generate Puzzle" />
       </form>
+    </dialog>
 
-      <nav>
-        <button onclick="toggleShowImage()">Show Image</button>
-        <label for="show-debug">Toggle debug:</label
-        ><input
-          type="checkbox"
-          name="show-debug"
-          id="show-debug"
-          checked
-          onchange="toggleDebug(event)"
-        />
-      </nav>
-    </header>
     <main>
+      <nav>
+        <button class="btn--primary" onclick="openGenerateModal()">
+          Generate
+        </button>
+
+        <div class="checkbox--primary">
+          <label id="toggle-show-image__label" for="toggle-show-image"
+            >Image 🙈</label
+          ><input
+            type="checkbox"
+            name="toggle-show-image"
+            id="toggle-show-image"
+            onchange="toggleShowImage(event)"
+          />
+        </div>
+
+        <div class="checkbox--primary">
+          <label for="show-debug">Debug</label
+          ><input
+            type="checkbox"
+            name="show-debug"
+            id="show-debug"
+            checked
+            onchange="toggleDebug(event)"
+          />
+        </div>
+      </nav>
+
       <div class="wrapper">
         <div id="image" style="display: none">
           <img src="#" alt="Puzzle image" />

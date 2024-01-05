@@ -35,7 +35,6 @@ let showDebug = true;
 
 setCanvasStyle();
 function setCanvasStyle() {
-  console.log("resize");
   const mainWrapperElement = document
     .querySelector("main")
     .querySelector(".wrapper");
@@ -54,10 +53,8 @@ function generatePuzzle(event) {
   // Clear puzzle
   pieces.splice(0, pieces.length);
 
-  console.log("Generating puzzle...");
-
   if (imageInput.files.length <= 0) {
-    console.log("No file selected");
+    console.warn("No file selected");
     imageShow.src = "#";
     imageSrc = "#";
     return;
@@ -121,6 +118,8 @@ function generatePuzzle(event) {
 
       // Draw the puzzle pieces on the canvas
       drawPuzzlePieces();
+
+      closeGenerateModal();
     };
   };
   reader.readAsDataURL(imageFile);
@@ -304,13 +303,43 @@ function zoomChange() {
   drawPuzzlePieces();
 }
 
+const generateModal = document.getElementById("generate-modal");
+openGenerateModal();
+generateModal.addEventListener("click", (event) => {
+  if (event.target.nodeName !== "DIALOG") {
+    return;
+  }
+
+  const rect = event.target.getBoundingClientRect();
+
+  if (
+    rect.left > event.clientX ||
+    rect.right < event.clientX ||
+    rect.top > event.clientY ||
+    rect.bottom < event.clientY
+  ) {
+    closeGenerateModal();
+  }
+});
+function openGenerateModal() {
+  generateModal.showModal();
+}
+function closeGenerateModal() {
+  generateModal.close();
+}
+
 const imageShowContainer = document.getElementById("image");
 const imageShow = imageShowContainer.querySelector("img");
-function toggleShowImage() {
-  if (imageShowContainer.style.display == "none") {
+const toggleShowImageLabel = document.getElementById(
+  "toggle-show-image__label"
+);
+function toggleShowImage(event) {
+  if (event.target.checked) {
     imageShowContainer.style.display = "block";
+    toggleShowImageLabel.innerText = "Image 🙉";
   } else {
     imageShowContainer.style.display = "none";
+    toggleShowImageLabel.innerText = "Image 🙈";
   }
 }
 

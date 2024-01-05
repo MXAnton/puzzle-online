@@ -1,36 +1,160 @@
+:root {
+  --blue: #264653;
+  --green: #2a9d8f;
+  --yellow: #e9c46a;
+  --orange: #f4a261;
+  --red: #e76f51;
+  --white: #e3ecf0;
+  --black: #081013;
+
+  --color--primary: var(--blue);
+  --color--secondary: var(--blue);
+
+  --color--text: var(--white);
+  --color--background: var(--color--primary);
+}
+
 body {
   font-size: 16px;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
-  color: black;
-  background-color: rgb(206, 206, 206);
+  color: var(--color--text);
+  background-color: var(--color--background);
 
   padding: 0;
   margin: 0;
 }
-
-header {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-
-  padding-bottom: 1rem;
-
-  background-color: black;
-  color: rgb(206, 206, 206);
+* {
+  letter-spacing: 0.02em;
 }
 
-header form {
+button:hover,
+a:hover,
+input[type="submit"],
+input[type="file"],
+input[type="checkbox"],
+select,
+label {
+  cursor: pointer;
+}
+
+.btn--primary,
+.btn--secondary {
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 1em;
+
+  padding: 0.6em 1.2em;
+
+  background-color: var(--color--background);
+  color: var(--color--text);
+  border: 1px solid var(--color--background);
+
+  border-radius: 0.2em;
+
+  transition: border-color 0.2s ease-in-out;
+}
+.btn--primary:hover,
+.btn--secondary:hover {
+  border-color: var(--yellow);
+}
+
+.checkbox--primary input[type="checkbox"] {
+  display: none;
+}
+.checkbox--primary label {
+  display: block;
+
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 1em;
+
+  padding: 0.6em 1.2em;
+
+  background-color: var(--color--background);
+  color: var(--color--text);
+  border: 1px solid var(--color--background);
+
+  border-radius: 0.2em;
+
+  cursor: pointer;
+
+  transform: translateY(0em);
+
+  transition: border-color 0.2s ease-in-out, background-color 0.2s ease-in-out,
+    transform 0.2s ease-in-out;
+}
+.checkbox--primary label:hover {
+  border-color: var(--yellow);
+}
+.checkbox--primary:has(input[type="checkbox"]:checked) label {
+  background-color: var(--yellow);
+  color: var(--black);
+  border-color: var(--yellow);
+
+  transform: translateY(0.2em);
+}
+.checkbox--primary:has(input[type="checkbox"]:checked) label:hover {
+  border-color: var(--black);
+}
+
+#generate-modal[open] {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  padding: 2rem 2rem 3rem;
+  border-radius: 0.6rem;
+
+  color: var(--black);
+  background-color: var(--yellow);
+  --color--text: var(--white);
+  --color--background: var(--black);
+}
+::backdrop {
+  background-color: black;
+  opacity: 0.75;
+  cursor: pointer;
+}
+
+#generate-modal h1 {
+  margin-top: 0;
+  margin-bottom: 0.2em;
+}
+
+#generate-modal form {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
 }
-header form label,
-header form input[type="submit"] {
+#generate-modal form label {
   margin-top: 0.8rem;
 }
 
-header nav {
-  margin-top: 3rem;
+#generate-modal form input[type="submit"] {
+  margin-top: 1.4rem;
+  padding: 0.8em 1.2em;
+  --color--background: var(--green);
+}
+
+.modal__close-btn {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+
+  font-size: 0.8rem;
+  font-weight: 900;
+
+  color: var(--white);
+  background-color: var(--black);
+  border: none;
+  border-radius: 50%;
+
+  width: 2em;
+  aspect-ratio: 1/1;
 }
 
 main {
@@ -39,13 +163,29 @@ main {
   box-sizing: border-box;
 }
 
+main > nav {
+  display: flex;
+  gap: 0.5rem;
+  align-items: end;
+
+  overflow-y: hidden;
+
+  --color--background: var(--green);
+  --color--text: var(--white);
+}
+main > nav .btn--primary,
+main > nav .checkbox--primary label {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
 main > .wrapper {
   width: 100%;
   position: relative;
 }
 
 #puzzleCanvas {
-  box-shadow: 0 0 0 1px black;
+  box-shadow: 0 0 0 1px var(--green);
 }
 
 #image {
@@ -53,12 +193,14 @@ main > .wrapper {
   top: 0;
   left: 0;
   width: 100%;
-  height: 80svh;
+  height: 100%;
 
-  padding: 1rem;
+  padding: 3%;
   box-sizing: border-box;
 
-  background-color: rgba(0, 0, 0, 0.397);
+  opacity: 0.9;
+
+  pointer-events: none;
 }
 #image img {
   width: auto;
@@ -67,4 +209,6 @@ main > .wrapper {
   position: relative;
   left: 50%;
   transform: translateX(-50%);
+
+  box-shadow: 0 0 1rem var(--green);
 }
