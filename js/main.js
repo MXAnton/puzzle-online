@@ -11,11 +11,9 @@ let selectedPiece = null;
 let puzzleColumns = 0;
 let puzzleRows = 0;
 
-let sceneWidth = 400;
-let sceneHeight = 400;
+let sceneWidth;
+let sceneHeight;
 
-// let pieceWidth;
-// let pieceHeight;
 let pieceSize;
 
 // in decimal percentage
@@ -34,19 +32,10 @@ let imageScale = 1;
 
 let showDebug = true;
 
-setCanvasStyle();
 function setCanvasStyle() {
   const mainWrapperElement = document
     .querySelector("main")
     .querySelector(".wrapper");
-  // canvas.width = Math.min(
-  //   mainWrapperElement.clientHeight / (9 / 16),
-  //   mainWrapperElement.clientWidth
-  // );
-  // canvas.height = Math.min(
-  //   mainWrapperElement.clientWidth / (16 / 9),
-  //   mainWrapperElement.clientHeight
-  // );
   canvas.width = mainWrapperElement.clientWidth;
   canvas.height = mainWrapperElement.clientHeight;
 
@@ -55,6 +44,7 @@ function setCanvasStyle() {
 
   zoomChange();
 }
+setCanvasStyle();
 window.onresize = setCanvasStyle;
 
 function generatePuzzle(event) {
@@ -73,32 +63,33 @@ function generatePuzzle(event) {
 
   const reader = new FileReader();
   reader.onload = function (e) {
-    setCanvasStyle();
-
+    // Load image
     imageSrc = e.target.result;
     imageShow.src = imageSrc;
-
-    zoomLevel = 1;
-
-    sceneWidth = canvas.width * zoomLevel;
-    sceneHeight = canvas.height * zoomLevel;
-
-    // Start in center
-    viewOffsetX = (sceneWidth - canvas.width) / 2;
-    viewOffsetY = (sceneHeight - canvas.height) / 2;
-
-    puzzleColumns = parseInt(puzzleColumnsInput.value);
-    puzzleRows = parseInt(puzzleRowsInput.value);
-
-    // Load your image
     image = new Image();
     image.src = imageSrc;
 
     // Wait for the image to load
     image.onload = function () {
+      setCanvasStyle();
+
+      puzzleColumns = parseInt(puzzleColumnsInput.value);
+      puzzleRows = parseInt(puzzleRowsInput.value);
+
+      zoomLevel = 1;
+
+      sceneWidth = canvas.width * zoomLevel;
+      sceneHeight = canvas.height * zoomLevel;
+
+      // Start in center
+      viewOffsetX = (sceneWidth - canvas.width) / 2;
+      viewOffsetY = (sceneHeight - canvas.height) / 2;
+
       // Cut the image into 4 rows and 4 columns
-      pieceSize = sceneWidth / (1 + puzzleBoardPadding) / puzzleColumns;
-      // pieceHeight = sceneHeight / (1 + puzzleBoardPadding) / puzzleRows;
+      pieceSize = Math.min(
+        sceneWidth / (1 + puzzleBoardPadding) / puzzleColumns,
+        sceneHeight / (1 + puzzleBoardPadding) / puzzleRows
+      );
 
       for (let row = 0; row < puzzleRows; row++) {
         for (let col = 0; col < puzzleColumns; col++) {
@@ -106,8 +97,17 @@ function generatePuzzle(event) {
           const piece = {
             correctCol: col,
             correctRow: row,
-            x: getRandomInt(sceneWidth - pieceSize),
-            y: getRandomInt(sceneHeight - pieceSize),
+            x:
+              Math.floor(
+                getRandomInt(sceneWidth - pieceSize) / (pieceSize / 10)
+              ) *
+              (pieceSize / 10),
+            y: getRandomInt(
+              Math.floor(
+                getRandomInt(sceneHeight - pieceSize) / (pieceSize / 10)
+              ) *
+                (pieceSize / 10)
+            ),
             width: pieceSize,
             height: pieceSize,
             isDragging: false,
@@ -127,7 +127,6 @@ function generatePuzzle(event) {
       canvas.addEventListener("wheel", handleMouseWheel);
 
       // Draw the puzzle pieces on the canvas
-      setCanvasStyle();
       drawPuzzlePieces();
 
       closeGenerateModal();
@@ -226,17 +225,14 @@ function handleMouseMove(event) {
     let x = mouseX - selectedPiece.offset.x + viewOffsetX;
     let y = mouseY - selectedPiece.offset.y + viewOffsetY;
 
+    x = Math.min(Math.max(x, 0), sceneWidth - selectedPiece.width);
+    y = Math.min(Math.max(y, 0), sceneHeight - selectedPiece.height);
+
     x = Math.floor(x / (pieceSize / 10)) * (pieceSize / 10);
     y = Math.floor(y / (pieceSize / 10)) * (pieceSize / 10);
 
-    selectedPiece.x = Math.min(
-      Math.max(x, 0),
-      sceneWidth - selectedPiece.width
-    );
-    selectedPiece.y = Math.min(
-      Math.max(y, 0),
-      sceneHeight - selectedPiece.height
-    );
+    selectedPiece.x = x;
+    selectedPiece.y = y;
 
     draw = true;
   }
@@ -302,13 +298,11 @@ function zoomChange() {
 
   // Make puzzle contain as much space as it can leaving the padding and
   // without stretching the pieces
-
   const oldPieceSize = pieceSize;
   pieceSize = Math.min(
     sceneWidth / (1 + puzzleBoardPadding) / puzzleColumns,
     sceneHeight / (1 + puzzleBoardPadding) / puzzleRows
   );
-  // pieceHeight = sceneHeight / (1 + puzzleBoardPadding) / puzzleRows;
 
   const newScaleMultiplier = pieceSize / oldPieceSize;
 
@@ -319,7 +313,6 @@ function zoomChange() {
     piece.y *= newScaleMultiplier;
   });
 
-  // Draw the puzzle pieces with the updated zoom level
   drawPuzzlePieces();
 }
 
