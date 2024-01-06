@@ -290,8 +290,15 @@ function zoomChange() {
   sceneWidth = canvas.width * zoomLevel;
   sceneHeight = canvas.height * zoomLevel;
 
-  viewOffsetX *= sceneWidth / oldSceneWidth;
-  viewOffsetY *= sceneHeight / oldSceneHeight;
+  const sceneWidthDelta = sceneWidth - oldSceneWidth;
+  const sceneHeightDelta = sceneHeight - oldSceneHeight;
+
+  viewOffsetX +=
+    ((prevMouseX - canvas.getBoundingClientRect().left) / canvas.width) *
+    sceneWidthDelta;
+  viewOffsetY +=
+    ((prevMouseY - canvas.getBoundingClientRect().top) / canvas.height) *
+    sceneHeightDelta;
 
   viewOffsetX = Math.max(0, Math.min(sceneWidth - canvas.width, viewOffsetX));
   viewOffsetY = Math.max(0, Math.min(sceneHeight - canvas.height, viewOffsetY));
