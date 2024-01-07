@@ -251,6 +251,12 @@ main > .wrapper {
   line-height: 0.5em;
 
   margin-bottom: 0.5em;
+
+  display: flex;
+  gap: 2rem;
+}
+#timer {
+  font-weight: bold;
 }
 
 #puzzleCanvas {

@@ -134,6 +134,9 @@ function generatePuzzle(event) {
       // Draw the puzzle pieces on the canvas
       drawCanvas();
 
+      // Reset timer
+      restartTimer();
+
       closeGenerateModal();
     };
   };
@@ -441,6 +444,53 @@ function setPanning(event) {
   panningViewLocked = event.target.checked;
 
   drawCanvas();
+}
+
+const timerText = document.getElementById("timer");
+let hours = 0;
+let minutes = 0;
+let seconds = 0;
+let timerIntervalId; // Variable to store the interval ID
+// Function to format the time as hh:mm:ss
+function formatTime(hours, minutes, seconds) {
+  return (
+    String(hours).padStart(2, "0") +
+    ":" +
+    String(minutes).padStart(2, "0") +
+    ":" +
+    String(seconds).padStart(2, "0")
+  );
+}
+// Function to update the timer
+function updateTimer() {
+  seconds++;
+
+  if (seconds === 60) {
+    seconds = 0;
+    minutes++;
+
+    if (minutes === 60) {
+      minutes = 0;
+      hours++;
+    }
+  }
+
+  timerText.innerText = formatTime(hours, minutes, seconds);
+}
+function stopTimer() {
+  clearInterval(timerIntervalId);
+}
+function startTimer() {
+  // Update the timer every second
+  timerIntervalId = setInterval(updateTimer, 1000);
+}
+function restartTimer() {
+  stopTimer();
+  hours = 0;
+  minutes = 0;
+  seconds = 0;
+  timerText.innerText = formatTime(hours, minutes, seconds);
+  startTimer();
 }
 
 function getRandomInt(max) {
