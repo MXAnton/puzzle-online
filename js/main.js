@@ -81,7 +81,16 @@ function generatePuzzle(event) {
       puzzleColumns = parseInt(puzzleColumnsInput.value);
       puzzleRows = parseInt(puzzleRowsInput.value);
 
+      // Reset settings
       zoomLevel = 1;
+      zoomInput.querySelector("span").textContent =
+        Math.round(zoomLevel * 100) + "%";
+      panningView = false;
+      panningViewLocked = false;
+      document.getElementById("pan-input").checked = false;
+      imageShowContainer.style.display = "none";
+      toggleShowImageLabel.innerText = "🖼🙈";
+      document.getElementById("toggle-show-image").checked = false;
 
       sceneWidth = canvas.width * zoomLevel;
       sceneHeight = canvas.height * zoomLevel;
