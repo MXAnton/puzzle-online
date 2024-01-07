@@ -7,6 +7,7 @@ const ctx = canvas.getContext("2d");
 
 const pieces = [];
 let selectedPiece = null;
+let hoveredPiece = null;
 
 let puzzleColumns = 0;
 let puzzleRows = 0;
@@ -173,57 +174,68 @@ function drawPuzzlePieces() {
 function handleMouseDown(event) {
   // Check if the middle mouse button (scroll wheel) is pressed
   if (event.buttons === 4) {
-    isMouseScrolling = true;
     prevMouseX = event.clientX;
     prevMouseY = event.clientY;
+
+    document.body.style.cursor = "all-scroll";
 
     return;
   }
 
-  const globalMouseX = event.clientX - canvas.getBoundingClientRect().left;
-  const globalMouseY = event.clientY - canvas.getBoundingClientRect().top;
+  const mouseX =
+    event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
+  const mouseY =
+    event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
 
-  const mouseX = globalMouseX + viewOffsetX;
-  const mouseY = globalMouseY + viewOffsetY;
-  // const mouseY = globalMouseY / zoomLevel;
+  if (hoveredPiece) {
+    selectedPiece = hoveredPiece;
 
-  // Check if the mouse is inside any puzzle piece
-  // Start backwards to check them in ZIndex order, Top first
-  for (let i = pieces.length - 1; i >= 0; i--) {
-    const piece = pieces[i];
+    // Calculate the offset from the mouse click position to the piece corner
+    selectedPiece.offset.x = mouseX - selectedPiece.x;
+    selectedPiece.offset.y = mouseY - selectedPiece.y;
 
-    if (
-      mouseX >= piece.x &&
-      mouseX <= piece.x + piece.width &&
-      mouseY >= piece.y &&
-      mouseY <= piece.y + piece.height
-    ) {
-      selectedPiece = piece;
+    // Bring the selected piece to the top of the z-order
+    selectedPiece.zIndex = pieces.length - 1;
+    // Place last top piece lower in zIndex
+    pieces[pieces.length - 1].zIndex--;
 
-      // Calculate the offset from the mouse click position to the piece corner
-      selectedPiece.offset.x = mouseX - piece.x;
-      selectedPiece.offset.y = mouseY - piece.y;
+    selectedPiece.isDragging = true;
 
-      // Bring the selected piece to the top of the z-order
-      selectedPiece.zIndex = pieces.length - 1;
-      // Place last top piece lower in zIndex
-      pieces[pieces.length - 1].zIndex--;
-
-      selectedPiece.isDragging = true;
-      break;
-    }
+    document.body.style.cursor = "grabbing";
   }
 }
 
 function handleMouseMove(event) {
   let draw = false;
 
-  if (selectedPiece && selectedPiece.isDragging) {
-    const mouseX = event.clientX - canvas.getBoundingClientRect().left;
-    const mouseY = event.clientY - canvas.getBoundingClientRect().top;
+  const mouseX =
+    event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
+  const mouseY =
+    event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
 
-    let x = mouseX - selectedPiece.offset.x + viewOffsetX;
-    let y = mouseY - selectedPiece.offset.y + viewOffsetY;
+  // Check if the mouse is inside any puzzle piece
+  // Start backwards to check them in ZIndex order, Top first
+  let isHoveringPiece = false;
+  for (let i = pieces.length - 1; i >= 0; i--) {
+    const piece = pieces[i];
+    if (
+      mouseX >= piece.x &&
+      mouseX <= piece.x + piece.width &&
+      mouseY >= piece.y &&
+      mouseY <= piece.y + piece.height
+    ) {
+      isHoveringPiece = true;
+      hoveredPiece = piece;
+      break;
+    }
+  }
+  if (!isHoveringPiece) {
+    hoveredPiece = null;
+  }
+
+  if (selectedPiece && selectedPiece.isDragging) {
+    let x = mouseX - selectedPiece.offset.x;
+    let y = mouseY - selectedPiece.offset.y;
 
     x = Math.min(Math.max(x, 0), sceneWidth - selectedPiece.width);
     y = Math.min(Math.max(y, 0), sceneHeight - selectedPiece.height);
@@ -235,10 +247,16 @@ function handleMouseMove(event) {
     selectedPiece.y = y;
 
     draw = true;
+  } else if (hoveredPiece) {
+    document.body.style.cursor = "grab";
+  } else {
+    document.body.style.cursor = "default";
   }
 
   // Check if the mouse scroll wheel is pressed
   if (event.buttons === 4) {
+    document.body.style.cursor = "all-scroll";
+
     // Update view offsets based on mouse movement
     viewOffsetX -= event.clientX - prevMouseX;
     viewOffsetY -= event.clientY - prevMouseY;
@@ -262,10 +280,18 @@ function handleMouseMove(event) {
   prevMouseY = event.clientY;
 }
 
-function handleMouseUp() {
+function handleMouseUp(event) {
   if (selectedPiece) {
     selectedPiece.isDragging = false;
     selectedPiece = null;
+  }
+
+  if (event.buttons === 4) {
+    document.body.style.cursor = "all-scroll";
+  } else if (hoveredPiece) {
+    document.body.style.cursor = "grab";
+  } else {
+    document.body.style.cursor = "default";
   }
 }
 
