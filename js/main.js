@@ -27,6 +27,7 @@ let viewOffsetX = 0; // 0-x
 let viewOffsetY = 0; // 0-y
 
 let panningView = false;
+let panningViewLocked = false;
 
 let prevMouseX = 0;
 let prevMouseY = 0;
@@ -45,7 +46,6 @@ function setCanvasStyle() {
   canvas.height = mainWrapperElement.clientHeight;
 
   ctx.font = "16px Arial";
-  ctx.fillStyle = "red";
 
   zoomChange();
 }
@@ -165,7 +165,7 @@ function drawCanvas() {
     );
   });
 
-  if (panningView) {
+  if (panningView || panningViewLocked) {
     // Draw pan view
     ctx.fillStyle = "rgba(224, 224, 224, 0.2)";
     const panViewWidth = canvas.width / 5;
@@ -191,6 +191,7 @@ function drawCanvas() {
 
   if (showDebug) {
     // Draw text on the canvas
+    ctx.fillStyle = "rgba(224, 224, 224, 1)";
     ctx.fillText("Zoom: " + zoomLevel + "x", 5, 21);
     ctx.fillText("Scene width: " + sceneWidth + "px", 5, 37);
     ctx.fillText("Scene height: " + sceneHeight + "px", 5, 53);
@@ -284,7 +285,7 @@ function handleMouseMove(event) {
   }
 
   // Check if the mouse scroll wheel is pressed
-  if (panningView || event.buttons === 4) {
+  if (panningView || event.buttons === 4 || panningViewLocked) {
     panningView = true;
     document.body.style.cursor = "all-scroll";
 
@@ -423,15 +424,21 @@ const toggleShowImageLabel = document.getElementById(
 function toggleShowImage(event) {
   if (event.target.checked) {
     imageShowContainer.style.display = "block";
-    toggleShowImageLabel.innerText = "Image 🙉";
+    toggleShowImageLabel.innerText = "🖼🙉";
   } else {
     imageShowContainer.style.display = "none";
-    toggleShowImageLabel.innerText = "Image 🙈";
+    toggleShowImageLabel.innerText = "🖼🙈";
   }
 }
 
-function toggleDebug(event) {
+function setDebug(event) {
   showDebug = event.target.checked;
+
+  drawCanvas();
+}
+
+function setPanning(event) {
+  panningViewLocked = event.target.checked;
 
   drawCanvas();
 }

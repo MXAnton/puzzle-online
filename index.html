@@ -64,8 +64,18 @@
         </button>
 
         <div class="checkbox--primary">
+          <label for="show-debug">📝</label
+          ><input
+            type="checkbox"
+            name="show-debug"
+            id="show-debug"
+            onchange="setDebug(event)"
+          />
+        </div>
+
+        <div class="checkbox--primary">
           <label id="toggle-show-image__label" for="toggle-show-image"
-            >Image 🙈</label
+            >🖼🙈</label
           ><input
             type="checkbox"
             name="toggle-show-image"
@@ -75,12 +85,12 @@
         </div>
 
         <div class="checkbox--primary">
-          <label for="show-debug">Debug</label
+          <label for="pan-input">Pan🔒</label
           ><input
             type="checkbox"
-            name="show-debug"
-            id="show-debug"
-            onchange="toggleDebug(event)"
+            name="pan-input"
+            id="pan-input"
+            onchange="setPanning(event)"
           />
         </div>
 
