@@ -1,6 +1,7 @@
 :root {
   --blue: #264653;
   --green: #2a9d8f;
+  --green--dark: #20776d;
   --yellow: #e9c46a;
   --orange: #f4a261;
   --red: #e76f51;
@@ -52,6 +53,7 @@ label {
   line-height: 1em;
 
   padding: 0.6em 1.2em;
+  box-sizing: border-box;
 
   background-color: var(--color--background);
   color: var(--color--text);
@@ -104,6 +106,48 @@ label {
 }
 .checkbox--primary:has(input[type="checkbox"]:checked) label:hover {
   border-color: var(--black);
+}
+
+#zoom-input {
+  font-size: 1rem;
+
+  padding: 0 0.5em;
+  border: 0;
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+}
+#zoom-input button {
+  font-size: 1em;
+  line-height: 100%;
+
+  padding: 0;
+
+  aspect-ratio: 1/1;
+
+  height: 50%;
+  border: 1px solid var(--color--text);
+  border-radius: 50%;
+
+  background-color: var(--color--background);
+  color: var(--color--text);
+
+  transform: translateY(0%);
+
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+#zoom-input button:hover {
+  background-color: var(--green--dark);
+}
+#zoom-input button:active {
+  transform: translateY(5%);
+}
+#zoom-input span {
+  font-size: 1em;
+  width: 2.6em;
+  text-align: center;
 }
 
 #generate-modal[open] {
@@ -185,6 +229,9 @@ main > nav {
 
   --color--background: var(--green);
   --color--text: var(--white);
+}
+main > nav > * {
+  height: 2.325rem;
 }
 main > nav .btn--primary,
 main > nav .checkbox--primary label {

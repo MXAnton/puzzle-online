@@ -2,6 +2,8 @@ const imageInput = document.getElementById("image-input");
 const puzzleColumnsInput = document.getElementById("puzzle-columns-input");
 const puzzleRowsInput = document.getElementById("puzzle-rows-input");
 
+const zoomInput = document.getElementById("zoom-input");
+
 const canvas = document.getElementById("puzzleCanvas");
 const ctx = canvas.getContext("2d");
 
@@ -31,7 +33,7 @@ let imageSrc = null;
 let image = new Image();
 let imageScale = 1;
 
-let showDebug = true;
+let showDebug = false;
 
 function setCanvasStyle() {
   const mainWrapperElement = document
@@ -300,7 +302,11 @@ function handleMouseWheel(event) {
   event.preventDefault();
 
   // Adjust zoom level based on the direction of the mouse wheel
-  zoomLevel += event.deltaY > 0 ? -0.1 : 0.1;
+  zoom(event.deltaY > 0 ? -0.1 : 0.1);
+}
+
+function zoom(zoomValue) {
+  zoomLevel += zoomValue;
 
   // Ensure zoom level is within reasonable bounds
   zoomLevel = Math.max(1, Math.min(2, zoomLevel));
@@ -347,6 +353,10 @@ function zoomChange() {
   });
 
   drawPuzzlePieces();
+
+  // Set UI
+  zoomInput.querySelector("span").textContent =
+    Math.round(zoomLevel * 100) + "%";
 }
 
 const generateModal = document.getElementById("generate-modal");

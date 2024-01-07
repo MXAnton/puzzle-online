@@ -80,9 +80,14 @@
             type="checkbox"
             name="show-debug"
             id="show-debug"
-            checked
             onchange="toggleDebug(event)"
           />
+        </div>
+
+        <div id="zoom-input" class="btn--primary">
+          <button onclick="zoom(-0.1)">-</button>
+          <span>100%</span>
+          <button onclick="zoom(0.1)">+</button>
         </div>
       </nav>
 
