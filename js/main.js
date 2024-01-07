@@ -26,6 +26,8 @@ let zoomLevel = 1; // 1-x (1 is full view visbile)
 let viewOffsetX = 0; // 0-x
 let viewOffsetY = 0; // 0-y
 
+let panningView = false;
+
 let prevMouseX = 0;
 let prevMouseY = 0;
 
@@ -130,7 +132,7 @@ function generatePuzzle(event) {
       canvas.addEventListener("wheel", handleMouseWheel);
 
       // Draw the puzzle pieces on the canvas
-      drawPuzzlePieces();
+      drawCanvas();
 
       closeGenerateModal();
     };
@@ -138,7 +140,7 @@ function generatePuzzle(event) {
   reader.readAsDataURL(imageFile);
 }
 
-function drawPuzzlePieces() {
+function drawCanvas() {
   // Sort pieces based on z-order before drawing
   pieces.sort((a, b) => a.zIndex - b.zIndex);
 
@@ -163,6 +165,30 @@ function drawPuzzlePieces() {
     );
   });
 
+  if (panningView) {
+    // Draw pan view
+    ctx.fillStyle = "rgba(224, 224, 224, 0.2)";
+    const panViewWidth = canvas.width / 5;
+    const panViewHeight = panViewWidth / (16 / 9);
+    const panViewOffset = canvas.width / 100;
+    ctx.fillRect(
+      panViewOffset,
+      canvas.height - panViewHeight - panViewOffset,
+      panViewWidth,
+      panViewHeight
+    );
+    const canvasToPanViewMultiplier = panViewWidth / sceneWidth;
+    ctx.fillRect(
+      panViewOffset + viewOffsetX * canvasToPanViewMultiplier,
+      canvas.height -
+        panViewOffset -
+        panViewHeight +
+        viewOffsetY * canvasToPanViewMultiplier,
+      panViewWidth / zoomLevel,
+      panViewHeight / zoomLevel
+    );
+  }
+
   if (showDebug) {
     // Draw text on the canvas
     ctx.fillText("Zoom: " + zoomLevel + "x", 5, 21);
@@ -176,6 +202,8 @@ function drawPuzzlePieces() {
 function handleMouseDown(event) {
   // Check if the middle mouse button (scroll wheel) is pressed
   if (event.buttons === 4) {
+    panningView = true;
+
     prevMouseX = event.clientX;
     prevMouseY = event.clientY;
 
@@ -256,7 +284,8 @@ function handleMouseMove(event) {
   }
 
   // Check if the mouse scroll wheel is pressed
-  if (event.buttons === 4) {
+  if (panningView || event.buttons === 4) {
+    panningView = true;
     document.body.style.cursor = "all-scroll";
 
     // Update view offsets based on mouse movement
@@ -274,7 +303,7 @@ function handleMouseMove(event) {
 
   if (draw) {
     // Draw the puzzle pieces with the updated view offsets
-    drawPuzzlePieces();
+    drawCanvas();
   }
 
   // Update previous mouse position
@@ -282,19 +311,21 @@ function handleMouseMove(event) {
   prevMouseY = event.clientY;
 }
 
-function handleMouseUp(event) {
+function handleMouseUp() {
   if (selectedPiece) {
     selectedPiece.isDragging = false;
     selectedPiece = null;
   }
 
-  if (event.buttons === 4) {
-    document.body.style.cursor = "all-scroll";
-  } else if (hoveredPiece) {
+  panningView = false;
+
+  if (hoveredPiece) {
     document.body.style.cursor = "grab";
   } else {
     document.body.style.cursor = "default";
   }
+
+  drawCanvas();
 }
 
 function handleMouseWheel(event) {
@@ -352,7 +383,7 @@ function zoomChange() {
     piece.y *= newScaleMultiplier;
   });
 
-  drawPuzzlePieces();
+  drawCanvas();
 
   // Set UI
   zoomInput.querySelector("span").textContent =
@@ -402,7 +433,7 @@ function toggleShowImage(event) {
 function toggleDebug(event) {
   showDebug = event.target.checked;
 
-  drawPuzzlePieces();
+  drawCanvas();
 }
 
 function getRandomInt(max) {
