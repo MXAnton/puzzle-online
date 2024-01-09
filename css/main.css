@@ -292,3 +292,44 @@ main > .wrapper {
 
   box-shadow: 0 0 1rem var(--green);
 }
+
+#victory-message {
+  display: none;
+}
+#victory-message.active {
+  display: block;
+
+  position: absolute;
+
+  z-index: 3;
+
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+
+  font-size: 1rem;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5em;
+
+  background-color: rgba(0, 0, 0, 0.7);
+}
+#victory-message h2 {
+  font-size: 2em;
+  font-weight: 600;
+
+  margin: 0 0 0.4em;
+}
+#victory-message p {
+  font-size: 1em;
+
+  margin: 0;
+}
+#victory-message #victory-time {
+  font-size: 2.5em;
+  font-weight: 900;
+}

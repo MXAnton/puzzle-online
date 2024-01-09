@@ -4,10 +4,14 @@ const puzzleRowsInput = document.getElementById("puzzle-rows-input");
 
 const zoomInput = document.getElementById("zoom-input");
 
+const victoryMessage = document.getElementById("victory-message");
+const victoryTime = document.getElementById("victory-time");
+
 const canvas = document.getElementById("puzzleCanvas");
 const ctx = canvas.getContext("2d");
 
 const pieces = [];
+let piecesMatched = [];
 let selectedPiece = null;
 let hoveredPiece = null;
 
@@ -57,6 +61,8 @@ function generatePuzzle(event) {
 
   // Clear puzzle
   pieces.splice(0, pieces.length);
+  piecesMatched.splice(0, piecesMatched.length);
+  victoryMessage.classList.remove("active");
 
   if (imageInput.files.length <= 0) {
     console.warn("No file selected");
@@ -100,23 +106,27 @@ function generatePuzzle(event) {
       viewOffsetY = (sceneHeight - canvas.height) / 2;
 
       // Cut the image into 4 rows and 4 columns
-      pieceSize = Math.min(
-        sceneWidth / (1 + puzzleBoardPadding) / puzzleColumns,
-        sceneHeight / (1 + puzzleBoardPadding) / puzzleRows
+      pieceSize = Math.round(
+        Math.min(
+          sceneWidth / (1 + puzzleBoardPadding) / puzzleColumns,
+          sceneHeight / (1 + puzzleBoardPadding) / puzzleRows
+        )
       );
 
       for (let row = 0; row < puzzleRows; row++) {
         for (let col = 0; col < puzzleColumns; col++) {
           // Create puzzle piece objects with position and size information
           const piece = {
+            id: row * puzzleColumns + col,
             correctCol: col,
             correctRow: row,
-            x:
+            x: Math.round(
               Math.floor(
                 getRandomInt(sceneWidth - pieceSize) / (pieceSize / 10)
               ) *
-              (pieceSize / 10),
-            y: getRandomInt(
+                (pieceSize / 10)
+            ),
+            y: Math.round(
               Math.floor(
                 getRandomInt(sceneHeight - pieceSize) / (pieceSize / 10)
               ) *
@@ -130,6 +140,7 @@ function generatePuzzle(event) {
           };
 
           pieces.push(piece);
+          piecesMatched.push([piece.id]);
         }
       }
 
@@ -283,11 +294,23 @@ function handleMouseMove(event) {
     x = Math.min(Math.max(x, 0), sceneWidth - selectedPiece.width);
     y = Math.min(Math.max(y, 0), sceneHeight - selectedPiece.height);
 
-    x = Math.floor(x / (pieceSize / 10)) * (pieceSize / 10);
-    y = Math.floor(y / (pieceSize / 10)) * (pieceSize / 10);
+    x = Math.round(Math.floor(x / (pieceSize / 10)) * (pieceSize / 10));
+    y = Math.round(Math.floor(y / (pieceSize / 10)) * (pieceSize / 10));
 
-    selectedPiece.x = x;
-    selectedPiece.y = y;
+    const xDifference = x - selectedPiece.x;
+    const yDifference = y - selectedPiece.y;
+
+    const selectedPieceGroupIndex = findIndexWithElement(
+      piecesMatched,
+      selectedPiece.id
+    );
+
+    piecesMatched[selectedPieceGroupIndex].forEach((_pieceId) => {
+      const _pieceIndex = pieces.findIndex((_piece) => _piece.id === _pieceId);
+
+      pieces[_pieceIndex].x += xDifference;
+      pieces[_pieceIndex].y += yDifference;
+    });
 
     draw = true;
   } else if (hoveredPiece) {
@@ -326,8 +349,15 @@ function handleMouseMove(event) {
 
 function handleMouseUp() {
   if (selectedPiece) {
+    // Drop selected piece
+
+    // Check if piece got dropped beside correct matching piece
+    matchWithSurroundingPieces(selectedPiece);
+
     selectedPiece.isDragging = false;
     selectedPiece = null;
+
+    checkIfPuzzleDone();
   }
 
   panningView = false;
@@ -339,6 +369,74 @@ function handleMouseUp() {
   }
 
   drawCanvas();
+}
+
+function matchWithSurroundingPieces(_selectedPiece) {
+  const correctAdjacentPieces = pieces.filter(
+    (piece) =>
+      (_selectedPiece.correctCol === piece.correctCol &&
+        Math.abs(_selectedPiece.correctRow - piece.correctRow) === 1) ||
+      (_selectedPiece.correctRow === piece.correctRow &&
+        Math.abs(_selectedPiece.correctCol - piece.correctCol) === 1)
+  );
+
+  // Put adjecantPieces and selectedPiece in same array in piecesMatched
+  correctAdjacentPieces.forEach((adjacentPiece) => {
+    // Check if the pieces are in the same row or column
+    const sameRow = _selectedPiece.correctRow === adjacentPiece.correctRow;
+    const sameCol = _selectedPiece.correctCol === adjacentPiece.correctCol;
+
+    const selectedPieceGroupIndex = findIndexWithElement(
+      piecesMatched,
+      _selectedPiece.id
+    );
+
+    if (
+      (sameRow &&
+        Math.abs(_selectedPiece.correctCol - adjacentPiece.correctCol) === 1 &&
+        Math.abs(_selectedPiece.x - adjacentPiece.x) == pieceSize &&
+        _selectedPiece.y == adjacentPiece.y) ||
+      (sameCol &&
+        Math.abs(_selectedPiece.correctRow - adjacentPiece.correctRow) === 1 &&
+        Math.abs(_selectedPiece.y - adjacentPiece.y) == pieceSize &&
+        _selectedPiece.x == adjacentPiece.x)
+    ) {
+      const adjacentPieceGroupIndex = findIndexWithElement(
+        piecesMatched,
+        adjacentPiece.id
+      );
+
+      if (adjacentPieceGroupIndex == selectedPieceGroupIndex) {
+        // Already in same group
+        return;
+      }
+
+      piecesMatched[adjacentPieceGroupIndex] = piecesMatched[
+        adjacentPieceGroupIndex
+      ].concat(piecesMatched[selectedPieceGroupIndex]);
+      piecesMatched.splice(selectedPieceGroupIndex, 1);
+    }
+  });
+}
+function findIndexWithElement(arrays, element) {
+  for (let i = 0; i < arrays.length; i++) {
+    if (arrays[i].includes(element)) {
+      return i;
+    }
+  }
+  return -1; // Element not found in any array
+}
+
+function checkIfPuzzleDone() {
+  if (piecesMatched.length == 1) {
+    puzzleDone();
+  }
+}
+function puzzleDone() {
+  stopTimer();
+
+  victoryMessage.classList.add("active");
+  victoryTime.innerText = formatTime(hours, minutes, seconds);
 }
 
 function handleMouseWheel(event) {
@@ -382,9 +480,11 @@ function zoomChange() {
   // Make puzzle contain as much space as it can leaving the padding and
   // without stretching the pieces
   const oldPieceSize = pieceSize;
-  pieceSize = Math.min(
-    sceneWidth / (1 + puzzleBoardPadding) / puzzleColumns,
-    sceneHeight / (1 + puzzleBoardPadding) / puzzleRows
+  pieceSize = Math.round(
+    Math.min(
+      sceneWidth / (1 + puzzleBoardPadding) / puzzleColumns,
+      sceneHeight / (1 + puzzleBoardPadding) / puzzleRows
+    )
   );
 
   const newScaleMultiplier = pieceSize / oldPieceSize;
