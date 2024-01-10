@@ -9,6 +9,10 @@ const victoryTime = document.getElementById("victory-time");
 
 const canvas = document.getElementById("puzzleCanvas");
 const ctx = canvas.getContext("2d");
+canvas.addEventListener("contextmenu", function (event) {
+  // Prevent the default right-click behavior
+  event.preventDefault();
+});
 
 const pieces = [];
 let piecesMatched = [];
@@ -42,6 +46,16 @@ let image = new Image();
 let imageScale = 1;
 
 let showDebug = false;
+
+let markedGroups = [];
+let markMade = false;
+let dragginMarkedGroups = false;
+let markStartX = null;
+let markStartY = null;
+let markEndX = null;
+let markEndY = null;
+let markGrabOffsetX;
+let markGrabOffsetY;
 
 function setCanvasStyle() {
   const mainWrapperElement = document
@@ -116,16 +130,8 @@ function generatePuzzle(event) {
             id: row * puzzleColumns + col,
             correctCol: col,
             correctRow: row,
-            x:
-              Math.round(
-                getRandomInt(sceneWidth - pieceSize) / (pieceSize / 10)
-              ) *
-              (pieceSize / 10),
-            y:
-              Math.round(
-                getRandomInt(sceneHeight - pieceSize) / (pieceSize / 10)
-              ) *
-              (pieceSize / 10),
+            x: snapToGrid(getRandomInt(sceneWidth - pieceSize)),
+            y: snapToGrid(getRandomInt(sceneHeight - pieceSize)),
             isDragging: false,
             offset: { x: 0, y: 0 }, // Offset from mouse click position to piece corner
           };
@@ -174,6 +180,19 @@ function drawCanvas() {
     );
   });
 
+  if (markStartX != null) {
+    // Draw mark
+    ctx.fillStyle = "rgba(224, 124, 124, 0.2)";
+    const panViewWidth = Math.abs(markStartX - markEndX);
+    const panViewHeight = Math.abs(markStartY - markEndY);
+    ctx.fillRect(
+      Math.min(markStartX, markEndX) - viewOffsetX,
+      Math.min(markStartY, markEndY) - viewOffsetY,
+      panViewWidth,
+      panViewHeight
+    );
+  }
+
   if (panningView || panningViewLocked) {
     // Draw pan view
     ctx.fillStyle = "rgba(224, 224, 224, 0.2)";
@@ -216,13 +235,39 @@ function handleMouseDown(event) {
 
     return;
   } else if (event.buttons === 1) {
+    const mouseX =
+      event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
+    const mouseY =
+      event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
+
+    if (markStartX != null && markEndX != null) {
+      if (
+        markStartX > mouseX ||
+        markEndX < mouseX ||
+        markStartY > mouseY ||
+        markEndY < mouseY
+      ) {
+        // Clicked outside mark
+        removeMark();
+      } else {
+        // Clicked inside mark
+        dragginMarkedGroups = true;
+        markGrabOffsetX = mouseX - markStartX;
+        markGrabOffsetY = mouseY - markStartY;
+        document.body.style.cursor = "grabbing";
+
+        // Move all pieces in mark to top of rest of pieces
+        markedGroups.forEach((_markedGroup) => {
+          _markedGroup.forEach((_pieceId) => {
+            movePieceToLast(_pieceId);
+          });
+        });
+        return;
+      }
+    }
+
     if (hoveredPiece) {
       selectedPiece = hoveredPiece;
-
-      const mouseX =
-        event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
-      const mouseY =
-        event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
 
       // Calculate the offset from the mouse click position to the piece corner
       selectedPiece.offset.x = mouseX - selectedPiece.x;
@@ -247,8 +292,23 @@ function handleMouseDown(event) {
 
     // Pressing on board
     startPanningView(event.clientX, event.clientY);
+  } else if (event.buttons === 2) {
+    // Remove old marking
+    removeMark();
+
+    // Start marking pieces with box
+    const mouseX =
+      event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
+    const mouseY =
+      event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
+
+    markStartX = mouseX;
+    markStartY = mouseY;
+    markEndX = mouseX;
+    markEndY = mouseY;
   }
 }
+
 function startPanningView(_clientX, _clientY) {
   panningView = true;
 
@@ -311,15 +371,46 @@ function handleMouseMove(event) {
     hoveredPiece = null;
   }
 
-  if (selectedPiece && selectedPiece.isDragging) {
+  if (dragginMarkedGroups) {
+    // Move marked group
+    let x = mouseX - markGrabOffsetX;
+    let y = mouseY - markGrabOffsetY;
+
+    const markWidth = markEndX - markStartX;
+    const markHeight = markEndY - markStartY;
+
+    x = Math.min(Math.max(x, 0), sceneWidth - markWidth);
+    y = Math.min(Math.max(y, 0), sceneHeight - markHeight);
+
+    const xDifference = x - markStartX;
+    const yDifference = y - markStartY;
+
+    // Move mark
+    markStartX = snapToGrid(markStartX + xDifference);
+    markStartY = snapToGrid(markStartY + yDifference);
+    markEndX = snapToGrid(markEndX + xDifference);
+    markEndY = snapToGrid(markEndY + yDifference);
+
+    // Move pieces in mark
+    markedGroups.forEach((_markedGroup) => {
+      _markedGroup.forEach((_pieceId) => {
+        const _pieceIndex = pieces.findIndex(
+          (_piece) => _piece.id === _pieceId
+        );
+
+        pieces[_pieceIndex].y = snapToGrid(pieces[_pieceIndex].y + yDifference);
+        pieces[_pieceIndex].x = snapToGrid(pieces[_pieceIndex].x + xDifference);
+      });
+    });
+
+    draw = true;
+  } else if (selectedPiece && selectedPiece.isDragging) {
+    // Drag selected piece and its matched pieces
     let x = mouseX - selectedPiece.offset.x;
     let y = mouseY - selectedPiece.offset.y;
 
     x = Math.min(Math.max(x, 0), sceneWidth - pieceSize);
     y = Math.min(Math.max(y, 0), sceneHeight - pieceSize);
-
-    x = Math.round(x / (pieceSize / 10)) * (pieceSize / 10);
-    y = Math.round(y / (pieceSize / 10)) * (pieceSize / 10);
 
     const xDifference = x - selectedPiece.x;
     const yDifference = y - selectedPiece.y;
@@ -332,8 +423,8 @@ function handleMouseMove(event) {
     piecesMatched[selectedPieceGroupIndex].forEach((_pieceId) => {
       const _pieceIndex = pieces.findIndex((_piece) => _piece.id === _pieceId);
 
-      pieces[_pieceIndex].x += xDifference;
-      pieces[_pieceIndex].y += yDifference;
+      pieces[_pieceIndex].x = snapToGrid(pieces[_pieceIndex].x + xDifference);
+      pieces[_pieceIndex].y = snapToGrid(pieces[_pieceIndex].y + yDifference);
     });
 
     draw = true;
@@ -350,7 +441,7 @@ function handleMouseMove(event) {
     draw = true;
   }
 
-  if (draw) {
+  if (draw || markStartX != null) {
     // Draw the puzzle pieces with the updated view offsets
     drawCanvas();
   }
@@ -360,7 +451,51 @@ function handleMouseMove(event) {
   prevMouseY = event.clientY;
 }
 
-function handleMouseUp() {
+const gridSnapSmoother = 10;
+function snapToGrid(value) {
+  const gridSize = pieceSize / gridSnapSmoother;
+  return Math.round(Math.round(value / gridSize) * gridSize);
+}
+
+function handleMouseUp(event) {
+  if (event.button == 0) {
+    dragginMarkedGroups = false;
+  }
+
+  if (event.button == 2 && markStartX != null && markEndX != null) {
+    markMade = true;
+    dragginMarkedGroups = false;
+    // Set marking
+    const mouseX =
+      event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
+    const mouseY =
+      event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
+
+    markEndX = Math.max(markStartX, mouseX);
+    markStartX = Math.min(markStartX, mouseX);
+    markEndY = Math.max(markStartY, mouseY);
+    markStartY = Math.min(markStartY, mouseY);
+
+    // Get all pieces inside mark
+    markedGroups.length = 0;
+    for (let i = pieces.length - 1; i >= 0; i--) {
+      const piece = pieces[i];
+
+      if (
+        piece.x >= markStartX &&
+        piece.x + pieceSize <= markEndX &&
+        piece.y >= markStartY &&
+        piece.y + pieceSize <= markEndY
+      ) {
+        if (findIndexWithElement(markedGroups, piece.id) === -1) {
+          // Piece group NOT already in markedGroups array
+          const pieceGroupIndex = findIndexWithElement(piecesMatched, piece.id);
+          markedGroups.push(piecesMatched[pieceGroupIndex]);
+        }
+      }
+    }
+  }
+
   if (selectedPiece) {
     // Check if piece got dropped beside correct matching piece
     matchWithSurroundingPieces(selectedPiece);
@@ -381,6 +516,16 @@ function handleMouseUp() {
   }
 
   drawCanvas();
+}
+
+function removeMark() {
+  markMade = false;
+  dragginMarkedGroups = false;
+  markStartX = null;
+  markStartY = null;
+  markEndX = null;
+  markEndY = null;
+  markedGroups.length = 0;
 }
 
 function matchWithSurroundingPieces(_selectedPiece) {
@@ -528,12 +673,20 @@ function zoomChange() {
     newX = Math.min(Math.max(newX, 0), sceneWidth - pieceSize);
     newY = Math.min(Math.max(newY, 0), sceneHeight - pieceSize);
 
-    newX = Math.round(newX / (pieceSize / 10)) * (pieceSize / 10);
-    newY = Math.round(newY / (pieceSize / 10)) * (pieceSize / 10);
+    newX = snapToGrid(newX);
+    newY = snapToGrid(newY);
 
     piece.x = newX;
     piece.y = newY;
   });
+
+  // Update mark
+  if (markStartX != null) {
+    markStartX *= newScaleMultiplier;
+    markStartY *= newScaleMultiplier;
+    markEndX *= newScaleMultiplier;
+    markEndY *= newScaleMultiplier;
+  }
 
   drawCanvas();
 
