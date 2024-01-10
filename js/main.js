@@ -223,43 +223,61 @@ function drawCanvas() {
 function handleMouseDown(event) {
   // Check if the middle mouse button (scroll wheel) is pressed
   if (event.buttons === 4) {
-    panningView = true;
-
-    prevMouseX = event.clientX;
-    prevMouseY = event.clientY;
-
-    document.body.style.cursor = "all-scroll";
+    startPanningView(event.clientX, event.clientY);
 
     return;
+  } else if (event.buttons === 1) {
+    if (hoveredPiece) {
+      selectedPiece = hoveredPiece;
+
+      const mouseX =
+        event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
+      const mouseY =
+        event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
+
+      // Calculate the offset from the mouse click position to the piece corner
+      selectedPiece.offset.x = mouseX - selectedPiece.x;
+      selectedPiece.offset.y = mouseY - selectedPiece.y;
+
+      // Bring the selected piece group to the top of the z-order
+      // by moving the pieces in the group to end of array
+      const selectedPieceGroupIndex = findIndexWithElement(
+        piecesMatched,
+        selectedPiece.id
+      );
+      piecesMatched[selectedPieceGroupIndex].forEach((_pieceId) => {
+        movePieceToLast(_pieceId);
+      });
+
+      selectedPiece.isDragging = true;
+      document.body.style.cursor = "grabbing";
+
+      drawCanvas();
+      return;
+    }
+
+    // Pressing on board
+    startPanningView(event.clientX, event.clientY);
   }
+}
+function startPanningView(_clientX, _clientY) {
+  panningView = true;
 
-  if (hoveredPiece) {
-    selectedPiece = hoveredPiece;
+  prevMouseX = _clientX;
+  prevMouseY = _clientY;
 
-    const mouseX =
-      event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
-    const mouseY =
-      event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
+  document.body.style.cursor = "all-scroll";
+}
+function panView(_clientX, _clientY) {
+  panningView = true;
+  document.body.style.cursor = "all-scroll";
 
-    // Calculate the offset from the mouse click position to the piece corner
-    selectedPiece.offset.x = mouseX - selectedPiece.x;
-    selectedPiece.offset.y = mouseY - selectedPiece.y;
+  // Update view offsets based on mouse movement
+  viewOffsetX -= _clientX - prevMouseX;
+  viewOffsetY -= _clientY - prevMouseY;
 
-    // Bring the selected piece group to the top of the z-order
-    // by moving the pieces in the group to end of array
-    const selectedPieceGroupIndex = findIndexWithElement(
-      piecesMatched,
-      selectedPiece.id
-    );
-    piecesMatched[selectedPieceGroupIndex].forEach((_pieceId) => {
-      movePieceToLast(_pieceId);
-    });
-
-    selectedPiece.isDragging = true;
-    document.body.style.cursor = "grabbing";
-
-    drawCanvas();
-  }
+  viewOffsetX = Math.max(0, Math.min(sceneWidth - canvas.width, viewOffsetX));
+  viewOffsetY = Math.max(0, Math.min(sceneHeight - canvas.height, viewOffsetY));
 }
 function movePieceToLast(_pieceId) {
   // Find the index of the object in the array
@@ -338,18 +356,7 @@ function handleMouseMove(event) {
 
   // Check if the mouse scroll wheel is pressed
   if (panningView || event.buttons === 4 || panningViewLocked) {
-    panningView = true;
-    document.body.style.cursor = "all-scroll";
-
-    // Update view offsets based on mouse movement
-    viewOffsetX -= event.clientX - prevMouseX;
-    viewOffsetY -= event.clientY - prevMouseY;
-
-    viewOffsetX = Math.max(0, Math.min(sceneWidth - canvas.width, viewOffsetX));
-    viewOffsetY = Math.max(
-      0,
-      Math.min(sceneHeight - canvas.height, viewOffsetY)
-    );
+    panView(event.clientX, event.clientY);
 
     draw = true;
   }
