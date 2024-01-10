@@ -136,7 +136,6 @@ function generatePuzzle(event) {
             height: pieceSize,
             isDragging: false,
             offset: { x: 0, y: 0 }, // Offset from mouse click position to piece corner
-            zIndex: pieces.length, // Assign z-order based on the order of creation
           };
 
           pieces.push(piece);
@@ -164,9 +163,6 @@ function generatePuzzle(event) {
 }
 
 function drawCanvas() {
-  // Sort pieces based on z-order before drawing
-  pieces.sort((a, b) => a.zIndex - b.zIndex);
-
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   pieces.forEach((piece) => {
@@ -236,26 +232,46 @@ function handleMouseDown(event) {
     return;
   }
 
-  const mouseX =
-    event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
-  const mouseY =
-    event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
-
   if (hoveredPiece) {
     selectedPiece = hoveredPiece;
+
+    const mouseX =
+      event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
+    const mouseY =
+      event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
 
     // Calculate the offset from the mouse click position to the piece corner
     selectedPiece.offset.x = mouseX - selectedPiece.x;
     selectedPiece.offset.y = mouseY - selectedPiece.y;
 
-    // Bring the selected piece to the top of the z-order
-    selectedPiece.zIndex = pieces.length - 1;
-    // Place last top piece lower in zIndex
-    pieces[pieces.length - 1].zIndex--;
+    // Bring the selected piece group to the top of the z-order
+    // by moving the pieces in the group to end of array
+    const selectedPieceGroupIndex = findIndexWithElement(
+      piecesMatched,
+      selectedPiece.id
+    );
+    piecesMatched[selectedPieceGroupIndex].forEach((_pieceId) => {
+      movePieceToLast(_pieceId);
+    });
 
     selectedPiece.isDragging = true;
-
     document.body.style.cursor = "grabbing";
+
+    drawCanvas();
+  }
+}
+function movePieceToLast(_pieceId) {
+  // Find the index of the object in the array
+  const index = pieces.findIndex((_piece) => _piece.id === _pieceId);
+  const piece = pieces[index];
+
+  // If the object is found in the array
+  if (index !== -1) {
+    // Remove the object from its current position
+    pieces.splice(index, 1);
+
+    // Add the object to the last position in the array
+    pieces.push(piece);
   }
 }
 
@@ -268,7 +284,7 @@ function handleMouseMove(event) {
     event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
 
   // Check if the mouse is inside any puzzle piece
-  // Start backwards to check them in ZIndex order, Top first
+  // Start backwards to check them in order, Top first
   let isHoveringPiece = false;
   for (let i = pieces.length - 1; i >= 0; i--) {
     const piece = pieces[i];
