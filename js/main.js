@@ -471,6 +471,33 @@ function handleMouseWheel(event) {
   zoom(event.deltaY > 0 ? -0.1 : 0.1);
 }
 
+const zoomStartDelay = 400;
+const zoomMinDelay = 40;
+let currentZoomDelay;
+let zoomIntervalId;
+function startZooming(zoomValue) {
+  zoom(zoomValue);
+
+  currentZoomDelay = zoomStartDelay;
+  autoZoom(zoomValue);
+}
+function autoZoom(zoomValue) {
+  zoomIntervalId = setInterval(() => {
+    zoom(zoomValue);
+
+    currentZoomDelay = Math.max(
+      currentZoomDelay - (zoomStartDelay * 40) / currentZoomDelay,
+      zoomMinDelay
+    );
+
+    // Start next autozoom interval with new zoomdelay
+    clearInterval(zoomIntervalId);
+    autoZoom(zoomValue);
+  }, currentZoomDelay);
+}
+function stopZooming() {
+  clearInterval(zoomIntervalId);
+}
 function zoom(zoomValue) {
   zoomLevel += zoomValue;
 
@@ -480,7 +507,6 @@ function zoom(zoomValue) {
 
   zoomChange();
 }
-
 function zoomChange() {
   const oldSceneWidth = sceneWidth;
   const oldSceneHeight = sceneHeight;

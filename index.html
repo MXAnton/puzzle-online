@@ -101,9 +101,23 @@
         </div>
 
         <div id="zoom-input" class="btn--primary">
-          <button onclick="zoom(-0.1)">-</button>
+          <button
+            onmousedown="startZooming(-0.1)"
+            onmouseup="stopZooming()"
+            onmouseleave="stopZooming()"
+            onmouseout="stopZooming()"
+          >
+            -
+          </button>
           <span>100%</span>
-          <button onclick="zoom(0.1)">+</button>
+          <button
+            onmousedown="startZooming(0.1)"
+            onmouseup="stopZooming()"
+            onmouseleave="stopZooming()"
+            onmouseout="stopZooming()"
+          >
+            +
+          </button>
         </div>
       </nav>
 
