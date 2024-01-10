@@ -99,8 +99,8 @@ function generatePuzzle(event) {
       toggleShowImageLabel.innerText = "🖼🙈";
       document.getElementById("toggle-show-image").checked = false;
 
-      sceneWidth = canvas.width * zoomLevel;
-      sceneHeight = canvas.height * zoomLevel;
+      sceneWidth = Math.round(canvas.width * zoomLevel);
+      sceneHeight = Math.round(canvas.height * zoomLevel);
 
       // Start in center
       viewOffsetX = (sceneWidth - canvas.width) / 2;
@@ -318,8 +318,8 @@ function handleMouseMove(event) {
     x = Math.min(Math.max(x, 0), sceneWidth - pieceSize);
     y = Math.min(Math.max(y, 0), sceneHeight - pieceSize);
 
-    x = Math.round(Math.floor(x / (pieceSize / 10)) * (pieceSize / 10));
-    y = Math.round(Math.floor(y / (pieceSize / 10)) * (pieceSize / 10));
+    x = Math.round(x / (pieceSize / 10)) * (pieceSize / 10);
+    y = Math.round(y / (pieceSize / 10)) * (pieceSize / 10);
 
     const xDifference = x - selectedPiece.x;
     const yDifference = y - selectedPiece.y;
@@ -498,8 +498,8 @@ function zoomChange() {
   const oldSceneWidth = sceneWidth;
   const oldSceneHeight = sceneHeight;
 
-  sceneWidth = canvas.width * zoomLevel;
-  sceneHeight = canvas.height * zoomLevel;
+  sceneWidth = Math.round(canvas.width * zoomLevel);
+  sceneHeight = Math.round(canvas.height * zoomLevel);
 
   const sceneWidthDelta = sceneWidth - oldSceneWidth;
   const sceneHeightDelta = sceneHeight - oldSceneHeight;
@@ -522,8 +522,17 @@ function zoomChange() {
   const newScaleMultiplier = pieceSize / oldPieceSize;
 
   pieces.forEach((piece) => {
-    piece.x *= newScaleMultiplier;
-    piece.y *= newScaleMultiplier;
+    let newX = piece.x * newScaleMultiplier;
+    let newY = piece.y * newScaleMultiplier;
+
+    newX = Math.min(Math.max(newX, 0), sceneWidth - pieceSize);
+    newY = Math.min(Math.max(newY, 0), sceneHeight - pieceSize);
+
+    newX = Math.round(newX / (pieceSize / 10)) * (pieceSize / 10);
+    newY = Math.round(newY / (pieceSize / 10)) * (pieceSize / 10);
+
+    piece.x = newX;
+    piece.y = newY;
   });
 
   drawCanvas();
