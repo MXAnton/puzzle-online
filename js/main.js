@@ -362,11 +362,10 @@ function handleMouseMove(event) {
 
 function handleMouseUp() {
   if (selectedPiece) {
-    // Drop selected piece
-
     // Check if piece got dropped beside correct matching piece
     matchWithSurroundingPieces(selectedPiece);
 
+    // Drop selected piece
     selectedPiece.isDragging = false;
     selectedPiece = null;
 
@@ -399,19 +398,14 @@ function matchWithSurroundingPieces(_selectedPiece) {
     const sameRow = _selectedPiece.correctRow === adjacentPiece.correctRow;
     const sameCol = _selectedPiece.correctCol === adjacentPiece.correctCol;
 
-    const selectedPieceGroupIndex = findIndexWithElement(
-      piecesMatched,
-      _selectedPiece.id
-    );
-
     if (
       (sameRow &&
-        Math.abs(_selectedPiece.correctCol - adjacentPiece.correctCol) === 1 &&
-        Math.abs(_selectedPiece.x - adjacentPiece.x) == pieceSize &&
+        _selectedPiece.correctCol - adjacentPiece.correctCol ===
+          (_selectedPiece.x - adjacentPiece.x) / pieceSize &&
         _selectedPiece.y == adjacentPiece.y) ||
       (sameCol &&
-        Math.abs(_selectedPiece.correctRow - adjacentPiece.correctRow) === 1 &&
-        Math.abs(_selectedPiece.y - adjacentPiece.y) == pieceSize &&
+        _selectedPiece.correctRow - adjacentPiece.correctRow ===
+          (_selectedPiece.y - adjacentPiece.y) / pieceSize &&
         _selectedPiece.x == adjacentPiece.x)
     ) {
       const adjacentPieceGroupIndex = findIndexWithElement(
@@ -419,6 +413,10 @@ function matchWithSurroundingPieces(_selectedPiece) {
         adjacentPiece.id
       );
 
+      const selectedPieceGroupIndex = findIndexWithElement(
+        piecesMatched,
+        _selectedPiece.id
+      );
       if (adjacentPieceGroupIndex == selectedPieceGroupIndex) {
         // Already in same group
         return;
