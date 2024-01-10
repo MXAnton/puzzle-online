@@ -133,8 +133,6 @@ function generatePuzzle(event) {
               ) *
                 (pieceSize / 10)
             ),
-            width: pieceSize,
-            height: pieceSize,
             isDragging: false,
             offset: { x: 0, y: 0 }, // Offset from mouse click position to piece corner
           };
@@ -171,17 +169,15 @@ function drawCanvas() {
     ctx.drawImage(
       image,
       piece.correctCol *
-        piece.width *
-        (image.width / (piece.width * puzzleColumns)),
-      piece.correctRow *
-        piece.height *
-        (image.height / (piece.height * puzzleRows)),
+        pieceSize *
+        (image.width / (pieceSize * puzzleColumns)),
+      piece.correctRow * pieceSize * (image.height / (pieceSize * puzzleRows)),
       image.width / puzzleColumns,
       image.height / puzzleRows, // Source region (entire image)
       piece.x - viewOffsetX,
       piece.y - viewOffsetY,
-      piece.width,
-      piece.height // Destination region (scaled to fit the canvas)
+      pieceSize,
+      pieceSize // Destination region (scaled to fit the canvas)
     );
   });
 
@@ -309,9 +305,9 @@ function handleMouseMove(event) {
     const piece = pieces[i];
     if (
       mouseX >= piece.x &&
-      mouseX <= piece.x + piece.width &&
+      mouseX <= piece.x + pieceSize &&
       mouseY >= piece.y &&
-      mouseY <= piece.y + piece.height
+      mouseY <= piece.y + pieceSize
     ) {
       isHoveringPiece = true;
       hoveredPiece = piece;
@@ -326,8 +322,8 @@ function handleMouseMove(event) {
     let x = mouseX - selectedPiece.offset.x;
     let y = mouseY - selectedPiece.offset.y;
 
-    x = Math.min(Math.max(x, 0), sceneWidth - selectedPiece.width);
-    y = Math.min(Math.max(y, 0), sceneHeight - selectedPiece.height);
+    x = Math.min(Math.max(x, 0), sceneWidth - pieceSize);
+    y = Math.min(Math.max(y, 0), sceneHeight - pieceSize);
 
     x = Math.round(Math.floor(x / (pieceSize / 10)) * (pieceSize / 10));
     y = Math.round(Math.floor(y / (pieceSize / 10)) * (pieceSize / 10));
@@ -540,8 +536,6 @@ function zoomChange() {
   const newScaleMultiplier = pieceSize / oldPieceSize;
 
   pieces.forEach((piece) => {
-    piece.width = pieceSize;
-    piece.height = pieceSize;
     piece.x *= newScaleMultiplier;
     piece.y *= newScaleMultiplier;
   });
