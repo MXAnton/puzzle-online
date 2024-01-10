@@ -27,6 +27,7 @@ let pieceSize;
 const puzzleBoardPadding = 0.5;
 
 let zoomLevel = 1; // 1-x (1 is full view visbile)
+const maxZoomLevel = 5;
 let viewOffsetX = 0; // 0-x
 let viewOffsetY = 0; // 0-y
 
@@ -467,8 +468,8 @@ function zoom(zoomValue) {
   zoomLevel += zoomValue;
 
   // Ensure zoom level is within reasonable bounds
-  zoomLevel = Math.max(1, Math.min(2, zoomLevel));
-  zoomLevel = Math.floor(zoomLevel * 10) / 10;
+  zoomLevel = Math.max(1, Math.min(zoomLevel, maxZoomLevel));
+  zoomLevel = Math.round(zoomLevel * 10) / 10;
 
   zoomChange();
 }
