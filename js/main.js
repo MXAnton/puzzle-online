@@ -107,12 +107,7 @@ function generatePuzzle(event) {
       viewOffsetY = (sceneHeight - canvas.height) / 2;
 
       // Cut the image into 4 rows and 4 columns
-      pieceSize = Math.round(
-        Math.min(
-          sceneWidth / (1 + puzzleBoardPadding) / puzzleColumns,
-          sceneHeight / (1 + puzzleBoardPadding) / puzzleRows
-        )
-      );
+      pieceSize = getNewPieceSize();
 
       for (let row = 0; row < puzzleRows; row++) {
         for (let col = 0; col < puzzleColumns; col++) {
@@ -121,18 +116,16 @@ function generatePuzzle(event) {
             id: row * puzzleColumns + col,
             correctCol: col,
             correctRow: row,
-            x: Math.round(
-              Math.floor(
+            x:
+              Math.round(
                 getRandomInt(sceneWidth - pieceSize) / (pieceSize / 10)
               ) *
-                (pieceSize / 10)
-            ),
-            y: Math.round(
-              Math.floor(
+              (pieceSize / 10),
+            y:
+              Math.round(
                 getRandomInt(sceneHeight - pieceSize) / (pieceSize / 10)
               ) *
-                (pieceSize / 10)
-            ),
+              (pieceSize / 10),
             isDragging: false,
             offset: { x: 0, y: 0 }, // Offset from mouse click position to piece corner
           };
@@ -526,12 +519,7 @@ function zoomChange() {
   // Make puzzle contain as much space as it can leaving the padding and
   // without stretching the pieces
   const oldPieceSize = pieceSize;
-  pieceSize = Math.round(
-    Math.min(
-      sceneWidth / (1 + puzzleBoardPadding) / puzzleColumns,
-      sceneHeight / (1 + puzzleBoardPadding) / puzzleRows
-    )
-  );
+  pieceSize = getNewPieceSize();
 
   const newScaleMultiplier = pieceSize / oldPieceSize;
 
@@ -545,6 +533,15 @@ function zoomChange() {
   // Set UI
   zoomInput.querySelector("span").textContent =
     Math.round(zoomLevel * 100) + "%";
+}
+
+function getNewPieceSize() {
+  return Math.round(
+    Math.min(
+      sceneWidth / (1 + puzzleBoardPadding) / puzzleColumns,
+      sceneHeight / (1 + puzzleBoardPadding) / puzzleRows
+    )
+  );
 }
 
 const generateModal = document.getElementById("generate-modal");
