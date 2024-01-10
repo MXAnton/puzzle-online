@@ -49,6 +49,7 @@ let showDebug = false;
 
 let markedGroups = [];
 let markMade = false;
+let markHovered = false;
 let dragginMarkedGroups = false;
 let markStartX = null;
 let markStartY = null;
@@ -132,7 +133,6 @@ function generatePuzzle(event) {
             correctRow: row,
             x: snapToGrid(getRandomInt(sceneWidth - pieceSize)),
             y: snapToGrid(getRandomInt(sceneHeight - pieceSize)),
-            isDragging: false,
             offset: { x: 0, y: 0 }, // Offset from mouse click position to piece corner
           };
 
@@ -228,33 +228,37 @@ function drawCanvas() {
   }
 }
 
+function setCursor() {
+  if (!markMade && markStartX != null) {
+    // Making mark
+    document.body.style.cursor = "pointer";
+  } else if (dragginMarkedGroups || selectedPiece) {
+    document.body.style.cursor = "grabbing";
+  } else if (panningView || panningViewLocked) {
+    document.body.style.cursor = "all-scroll";
+  } else if (hoveredPiece) {
+    document.body.style.cursor = "grab";
+  } else {
+    document.body.style.cursor = "default";
+  }
+}
+
 function handleMouseDown(event) {
-  // Check if the middle mouse button (scroll wheel) is pressed
-  if (event.buttons === 4) {
-    startPanningView(event.clientX, event.clientY);
+  const mouseX =
+    event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
+  const mouseY =
+    event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
 
-    return;
-  } else if (event.buttons === 1) {
-    const mouseX =
-      event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
-    const mouseY =
-      event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
-
-    if (markStartX != null && markEndX != null) {
-      if (
-        markStartX > mouseX ||
-        markEndX < mouseX ||
-        markStartY > mouseY ||
-        markEndY < mouseY
-      ) {
+  switch (event.buttons) {
+    case 1: // Left mouse button
+      if (markMade && !markHovered) {
         // Clicked outside mark
         removeMark();
-      } else {
+      } else if (markHovered) {
         // Clicked inside mark
         dragginMarkedGroups = true;
         markGrabOffsetX = mouseX - markStartX;
         markGrabOffsetY = mouseY - markStartY;
-        document.body.style.cursor = "grabbing";
 
         // Move all pieces in mark to top of rest of pieces
         markedGroups.forEach((_markedGroup) => {
@@ -262,72 +266,50 @@ function handleMouseDown(event) {
             movePieceToLast(_pieceId);
           });
         });
-        return;
       }
-    }
 
-    if (hoveredPiece) {
-      selectedPiece = hoveredPiece;
+      if (hoveredPiece) {
+        selectedPiece = hoveredPiece;
 
-      // Calculate the offset from the mouse click position to the piece corner
-      selectedPiece.offset.x = mouseX - selectedPiece.x;
-      selectedPiece.offset.y = mouseY - selectedPiece.y;
+        // Calculate the offset from the mouse click position to the piece corner
+        selectedPiece.offset.x = mouseX - selectedPiece.x;
+        selectedPiece.offset.y = mouseY - selectedPiece.y;
 
-      // Bring the selected piece group to the top of the z-order
-      // by moving the pieces in the group to end of array
-      const selectedPieceGroupIndex = findIndexWithElement(
-        piecesMatched,
-        selectedPiece.id
-      );
-      piecesMatched[selectedPieceGroupIndex].forEach((_pieceId) => {
-        movePieceToLast(_pieceId);
-      });
+        // Bring the selected piece group to the top of the z-order
+        // by moving the pieces in the group to end of array
+        const selectedPieceGroupIndex = findIndexWithElement(
+          piecesMatched,
+          selectedPiece.id
+        );
+        piecesMatched[selectedPieceGroupIndex].forEach((_pieceId) => {
+          movePieceToLast(_pieceId);
+        });
+      } else {
+        // Pressing on board
+        startPanningView(event.clientX, event.clientY);
+      }
 
-      selectedPiece.isDragging = true;
-      document.body.style.cursor = "grabbing";
+      break;
+    case 2: // Right mouse button
+      // Remove old marking
+      removeMark();
 
-      drawCanvas();
-      return;
-    }
-
-    // Pressing on board
-    startPanningView(event.clientX, event.clientY);
-  } else if (event.buttons === 2) {
-    // Remove old marking
-    removeMark();
-
-    // Start marking pieces with box
-    const mouseX =
-      event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
-    const mouseY =
-      event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
-
-    markStartX = mouseX;
-    markStartY = mouseY;
-    markEndX = mouseX;
-    markEndY = mouseY;
+      // Start marking pieces with box
+      markStartX = mouseX;
+      markStartY = mouseY;
+      markEndX = mouseX;
+      markEndY = mouseY;
+      break;
+    case 4: // Scroll wheel button
+      startPanningView(event.clientX, event.clientY);
+      break;
   }
+
+  setCursor();
+
+  drawCanvas();
 }
 
-function startPanningView(_clientX, _clientY) {
-  panningView = true;
-
-  prevMouseX = _clientX;
-  prevMouseY = _clientY;
-
-  document.body.style.cursor = "all-scroll";
-}
-function panView(_clientX, _clientY) {
-  panningView = true;
-  document.body.style.cursor = "all-scroll";
-
-  // Update view offsets based on mouse movement
-  viewOffsetX -= _clientX - prevMouseX;
-  viewOffsetY -= _clientY - prevMouseY;
-
-  viewOffsetX = Math.max(0, Math.min(sceneWidth - canvas.width, viewOffsetX));
-  viewOffsetY = Math.max(0, Math.min(sceneHeight - canvas.height, viewOffsetY));
-}
 function movePieceToLast(_pieceId) {
   // Find the index of the object in the array
   const index = pieces.findIndex((_piece) => _piece.id === _pieceId);
@@ -351,7 +333,20 @@ function handleMouseMove(event) {
   const mouseY =
     event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
 
-  // Check if the mouse is inside any puzzle piece
+  // Check if mouse hovers mark
+  if (
+    markMade &&
+    mouseX >= markStartX &&
+    mouseX <= markEndX &&
+    mouseY >= markStartY &&
+    mouseY <= markEndY
+  ) {
+    markHovered = true;
+  } else {
+    markHovered = false;
+  }
+
+  // Check if mouse hovers any puzzle piece
   // Start backwards to check them in order, Top first
   let isHoveringPiece = false;
   for (let i = pieces.length - 1; i >= 0; i--) {
@@ -371,7 +366,10 @@ function handleMouseMove(event) {
     hoveredPiece = null;
   }
 
-  if (dragginMarkedGroups) {
+  if (!markMade && markStartX != null) {
+    markEndX = mouseX;
+    markEndY = mouseY;
+  } else if (dragginMarkedGroups) {
     // Move marked group
     let x = mouseX - markGrabOffsetX;
     let y = mouseY - markGrabOffsetY;
@@ -382,14 +380,14 @@ function handleMouseMove(event) {
     x = Math.min(Math.max(x, 0), sceneWidth - markWidth);
     y = Math.min(Math.max(y, 0), sceneHeight - markHeight);
 
-    const xDifference = x - markStartX;
-    const yDifference = y - markStartY;
+    const xDifference = snapToGrid(x - markStartX);
+    const yDifference = snapToGrid(y - markStartY);
 
     // Move mark
-    markStartX = snapToGrid(markStartX + xDifference);
-    markStartY = snapToGrid(markStartY + yDifference);
-    markEndX = snapToGrid(markEndX + xDifference);
-    markEndY = snapToGrid(markEndY + yDifference);
+    markStartX += xDifference;
+    markStartY += yDifference;
+    markEndX += xDifference;
+    markEndY += yDifference;
 
     // Move pieces in mark
     markedGroups.forEach((_markedGroup) => {
@@ -404,7 +402,7 @@ function handleMouseMove(event) {
     });
 
     draw = true;
-  } else if (selectedPiece && selectedPiece.isDragging) {
+  } else if (selectedPiece) {
     // Drag selected piece and its matched pieces
     let x = mouseX - selectedPiece.offset.x;
     let y = mouseY - selectedPiece.offset.y;
@@ -428,18 +426,13 @@ function handleMouseMove(event) {
     });
 
     draw = true;
-  } else if (hoveredPiece) {
-    document.body.style.cursor = "grab";
-  } else {
-    document.body.style.cursor = "default";
-  }
-
-  // Check if the mouse scroll wheel is pressed
-  if (panningView || event.buttons === 4 || panningViewLocked) {
+  } else if (panningView || event.buttons === 4 || panningViewLocked) {
     panView(event.clientX, event.clientY);
 
     draw = true;
   }
+
+  setCursor();
 
   if (draw || markStartX != null) {
     // Draw the puzzle pieces with the updated view offsets
@@ -458,62 +451,69 @@ function snapToGrid(value) {
 }
 
 function handleMouseUp(event) {
-  if (event.button == 0) {
-    dragginMarkedGroups = false;
-  }
+  switch (event.button) {
+    case 0: // Left mouse button
+      dragginMarkedGroups = false;
+      panningView = false;
 
-  if (event.button == 2 && markStartX != null && markEndX != null) {
-    markMade = true;
-    dragginMarkedGroups = false;
-    // Set marking
-    const mouseX =
-      event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
-    const mouseY =
-      event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
+      if (selectedPiece) {
+        // Check if piece got dropped beside correct matching piece
+        matchWithSurroundingPieces(selectedPiece);
 
-    markEndX = Math.max(markStartX, mouseX);
-    markStartX = Math.min(markStartX, mouseX);
-    markEndY = Math.max(markStartY, mouseY);
-    markStartY = Math.min(markStartY, mouseY);
+        // Drop selected piece
+        selectedPiece = null;
 
-    // Get all pieces inside mark
-    markedGroups.length = 0;
-    for (let i = pieces.length - 1; i >= 0; i--) {
-      const piece = pieces[i];
+        checkIfPuzzleDone();
+      }
+      break;
+    case 2: // Right mouse button
+      if (markStartX != null && markEndX != null) {
+        // Set marking
+        markMade = true;
+        dragginMarkedGroups = false;
 
-      if (
-        piece.x >= markStartX &&
-        piece.x + pieceSize <= markEndX &&
-        piece.y >= markStartY &&
-        piece.y + pieceSize <= markEndY
-      ) {
-        if (findIndexWithElement(markedGroups, piece.id) === -1) {
-          // Piece group NOT already in markedGroups array
-          const pieceGroupIndex = findIndexWithElement(piecesMatched, piece.id);
-          markedGroups.push(piecesMatched[pieceGroupIndex]);
+        const mouseX =
+          event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
+        const mouseY =
+          event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
+
+        markEndX = Math.max(markStartX, mouseX);
+        markStartX = Math.min(markStartX, mouseX);
+        markEndY = Math.max(markStartY, mouseY);
+        markStartY = Math.min(markStartY, mouseY);
+
+        // Get all pieces inside mark
+        markedGroups.length = 0;
+        for (let i = pieces.length - 1; i >= 0; i--) {
+          const piece = pieces[i];
+
+          if (
+            piece.x >= markStartX &&
+            piece.x + pieceSize <= markEndX &&
+            piece.y >= markStartY &&
+            piece.y + pieceSize <= markEndY
+          ) {
+            if (findIndexWithElement(markedGroups, piece.id) === -1) {
+              // Piece group NOT already in markedGroups array
+              const pieceGroupIndex = findIndexWithElement(
+                piecesMatched,
+                piece.id
+              );
+              markedGroups.push(piecesMatched[pieceGroupIndex]);
+            }
+          }
         }
       }
-    }
+      break;
+    case 1: // Scroll wheel button
+      panningView = false;
+      break;
+
+    default:
+      break;
   }
 
-  if (selectedPiece) {
-    // Check if piece got dropped beside correct matching piece
-    matchWithSurroundingPieces(selectedPiece);
-
-    // Drop selected piece
-    selectedPiece.isDragging = false;
-    selectedPiece = null;
-
-    checkIfPuzzleDone();
-  }
-
-  panningView = false;
-
-  if (hoveredPiece) {
-    document.body.style.cursor = "grab";
-  } else {
-    document.body.style.cursor = "default";
-  }
+  setCursor();
 
   drawCanvas();
 }
@@ -754,6 +754,22 @@ function setPanning(event) {
   panningViewLocked = event.target.checked;
 
   drawCanvas();
+}
+function startPanningView(_clientX, _clientY) {
+  panningView = true;
+
+  prevMouseX = _clientX;
+  prevMouseY = _clientY;
+}
+function panView(_clientX, _clientY) {
+  panningView = true;
+
+  // Update view offsets based on mouse movement
+  viewOffsetX -= _clientX - prevMouseX;
+  viewOffsetY -= _clientY - prevMouseY;
+
+  viewOffsetX = Math.max(0, Math.min(sceneWidth - canvas.width, viewOffsetX));
+  viewOffsetY = Math.max(0, Math.min(sceneHeight - canvas.height, viewOffsetY));
 }
 
 const timerText = document.getElementById("timer");
