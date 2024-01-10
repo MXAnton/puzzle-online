@@ -384,10 +384,10 @@ function handleMouseMove(event) {
     const yDifference = snapToGrid(y - markStartY);
 
     // Move mark
-    markStartX += xDifference;
-    markStartY += yDifference;
-    markEndX += xDifference;
-    markEndY += yDifference;
+    markStartX = snapToGrid(markStartX + xDifference);
+    markStartY = snapToGrid(markStartY + yDifference);
+    markEndX = snapToGrid(markEndX + xDifference);
+    markEndY = snapToGrid(markEndY + yDifference);
 
     // Move pieces in mark
     markedGroups.forEach((_markedGroup) => {
