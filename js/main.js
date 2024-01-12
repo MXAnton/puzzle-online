@@ -748,11 +748,12 @@ function handleMouseUp(event) {
           const piece = pieces[i];
 
           if (
-            piece.x >= markStartX &&
-            piece.x + pieceSize <= markEndX &&
-            piece.y >= markStartY &&
-            piece.y + pieceSize <= markEndY
+            piece.x + pieceSize > markStartX &&
+            piece.x < markEndX &&
+            piece.y + pieceSize > markStartY &&
+            piece.y < markEndY
           ) {
+            // Piece partly inside mark
             if (findIndexWithElement(markedGroups, piece.id) === -1) {
               // Piece group NOT already in markedGroups array
               const pieceGroupIndex = findIndexWithElement(
@@ -767,9 +768,6 @@ function handleMouseUp(event) {
       break;
     case 1: // Scroll wheel button
       panningView = false;
-      break;
-
-    default:
       break;
   }
 
