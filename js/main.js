@@ -526,6 +526,8 @@ function handleMouseDown(event) {
         piecesMatched[selectedPieceGroupIndex].forEach((_pieceId) => {
           movePieceToLast(_pieceId);
         });
+        // Make sure selectedPiece is last
+        movePieceToLast(selectedPiece.id);
       } else {
         // Pressing on board
         startPanningView(event.clientX, event.clientY);
