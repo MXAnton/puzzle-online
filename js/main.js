@@ -51,7 +51,7 @@ let showDebug = false;
 let markedGroups = [];
 let markMade = false;
 let markHovered = false;
-let dragginMarkedGroups = false;
+let markDragged = false;
 let markStartX = null;
 let markStartY = null;
 let markEndX = null;
@@ -399,8 +399,8 @@ function drawCanvas() {
       // Apply the scale transformation to the context
       ctx.translate(pieceSize / 20, pieceSize / 20);
 
-      // Now, you can use the copiedPath to draw the scaled path on the canvas
-      ctx.fill(piecePath); // Replace with your actual drawing method
+      // Fill scaled path with shadow color
+      ctx.fill(piecePath);
 
       // Reset the transformation to avoid affecting future drawings
       ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -424,10 +424,26 @@ function drawCanvas() {
 
   if (markStartX != null) {
     // Draw mark
-    ctx.fillStyle = "rgba(224, 124, 124, 0.2)";
     const panViewWidth = Math.abs(markStartX - markEndX);
     const panViewHeight = Math.abs(markStartY - markEndY);
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+    if (markDragged) {
+      // Add shadow behind selected piece
+      ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+    }
+
     ctx.fillRect(
+      Math.min(markStartX, markEndX) - viewOffsetX,
+      Math.min(markStartY, markEndY) - viewOffsetY,
+      panViewWidth,
+      panViewHeight
+    );
+
+    // Set the stroke color to black
+    ctx.strokeStyle = "black";
+    // Draw outline
+    ctx.strokeRect(
       Math.min(markStartX, markEndX) - viewOffsetX,
       Math.min(markStartY, markEndY) - viewOffsetY,
       panViewWidth,
@@ -474,7 +490,7 @@ function setCursor() {
   if (!markMade && markStartX != null) {
     // Making mark
     document.body.style.cursor = "pointer";
-  } else if (dragginMarkedGroups || selectedPiece) {
+  } else if (markDragged || selectedPiece) {
     document.body.style.cursor = "grabbing";
   } else if (panningView || panningViewLocked) {
     document.body.style.cursor = "all-scroll";
@@ -500,7 +516,7 @@ function handleMouseDown(event) {
 
       if (markMade && markHovered) {
         // Clicked inside mark
-        dragginMarkedGroups = true;
+        markDragged = true;
         markGrabOffsetX = mouseX - markStartX;
         markGrabOffsetY = mouseY - markStartY;
 
@@ -613,7 +629,7 @@ function handleMouseMove(event) {
   if (!markMade && markStartX != null) {
     markEndX = mouseX;
     markEndY = mouseY;
-  } else if (dragginMarkedGroups) {
+  } else if (markDragged) {
     // Move marked group
     let x = mouseX - markGrabOffsetX;
     let y = mouseY - markGrabOffsetY;
@@ -697,7 +713,7 @@ function snapToGrid(value) {
 function handleMouseUp(event) {
   switch (event.button) {
     case 0: // Left mouse button
-      dragginMarkedGroups = false;
+      markDragged = false;
       panningView = false;
 
       if (selectedPiece) {
@@ -714,7 +730,7 @@ function handleMouseUp(event) {
       if (markStartX != null && markEndX != null) {
         // Set marking
         markMade = true;
-        dragginMarkedGroups = false;
+        markDragged = false;
 
         const mouseX =
           event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
@@ -764,7 +780,7 @@ function handleMouseUp(event) {
 
 function removeMark() {
   markMade = false;
-  dragginMarkedGroups = false;
+  markDragged = false;
   markStartX = null;
   markStartY = null;
   markEndX = null;
