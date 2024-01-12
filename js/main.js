@@ -470,26 +470,6 @@ function drawCanvas() {
   }
 }
 
-function shadowRect(x, y, w, h, repeats, color) {
-  // set stroke & shadow to the same color
-  ctx.strokeStyle = color;
-  ctx.shadowColor = color;
-  // set initial blur of 3px
-  ctx.shadowBlur = 3;
-  // repeatedly overdraw the blur to make it prominent
-  for (var i = 0; i < repeats; i++) {
-    // increase the size of blur
-    ctx.shadowBlur += 0.25;
-    // stroke the rect (which also draws its shadow)
-    ctx.strokeRect(x, y, w, h);
-  }
-  // cancel shadowing by making the shadowColor transparent
-  ctx.shadowColor = "rgba(0,0,0,0)";
-  // restroke the interior of the rect for a more solid colored center
-  ctx.lineWidth = 2;
-  ctx.strokeRect(x + 2, y + 2, w - 4, h - 4);
-}
-
 function setCursor() {
   if (!markMade && markStartX != null) {
     // Making mark
