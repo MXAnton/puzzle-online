@@ -496,7 +496,9 @@ function handleMouseDown(event) {
       if (markMade && !markHovered) {
         // Clicked outside mark
         removeMark();
-      } else if (markHovered) {
+      }
+
+      if (markMade && markHovered) {
         // Clicked inside mark
         dragginMarkedGroups = true;
         markGrabOffsetX = mouseX - markStartX;
@@ -508,9 +510,7 @@ function handleMouseDown(event) {
             movePieceToLast(_pieceId);
           });
         });
-      }
-
-      if (hoveredPiece) {
+      } else if (hoveredPiece) {
         selectedPiece = hoveredPiece;
 
         // Calculate the offset from the mouse click position to the piece corner
