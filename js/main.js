@@ -26,6 +26,7 @@ let sceneWidth;
 let sceneHeight;
 
 let pieceSize;
+const tabSizeDecimal = 0.2;
 
 // in decimal percentage
 const puzzleBoardPadding = 0.5;
@@ -127,6 +128,43 @@ function generatePuzzle(event) {
       for (let row = 0; row < puzzleRows; row++) {
         for (let col = 0; col < puzzleColumns; col++) {
           // Create puzzle piece objects with position and size information
+          const piecesLoaded = pieces.length;
+
+          let pieceTabs = {};
+          // Left and top tab should be inverted from adjacent piece if any
+          pieceTabs.left =
+            col == 0
+              ? null
+              : {
+                  pos: pieces[piecesLoaded - 1].tabs.right.pos,
+                  isInset: !pieces[piecesLoaded - 1].tabs.right.isInset,
+                };
+          pieceTabs.top =
+            row == 0
+              ? null
+              : {
+                  pos: pieces[piecesLoaded - puzzleColumns].tabs.bottom.pos,
+                  isInset:
+                    !pieces[piecesLoaded - puzzleColumns].tabs.bottom.isInset,
+                };
+          // Right and bottom tab should be randomized if not last
+          pieceTabs.right =
+            col == puzzleColumns - 1
+              ? null
+              : {
+                  pos:
+                    getRandomInt(tabSizeDecimal * 100) / (tabSizeDecimal * 100), // Random 0-1 float with 1 decimal
+                  isInset: getRandomBoolean(), // Random true or false
+                };
+          pieceTabs.bottom =
+            row == puzzleRows - 1
+              ? null
+              : {
+                  pos:
+                    getRandomInt(tabSizeDecimal * 100) / (tabSizeDecimal * 100), // Random 0-1 float with 1 decimal
+                  isInset: getRandomBoolean(), // Random true or false
+                };
+
           const piece = {
             id: row * puzzleColumns + col,
             correctCol: col,
@@ -134,6 +172,7 @@ function generatePuzzle(event) {
             x: snapToGrid(getRandomInt(sceneWidth - pieceSize)),
             y: snapToGrid(getRandomInt(sceneHeight - pieceSize)),
             offset: { x: 0, y: 0 }, // Offset from mouse click position to piece corner
+            tabs: pieceTabs,
           };
 
           pieces.push(piece);
@@ -165,19 +204,209 @@ function drawCanvas() {
 
   pieces.forEach((piece) => {
     // Draw only the corresponding part of the image for each puzzle piece
+    const tabSize = pieceSize * tabSizeDecimal;
+
+    const imageScaleMultiplierX = image.width / (pieceSize * puzzleColumns);
+    const imageScaleMultiplierY = image.height / (pieceSize * puzzleRows);
+
+    const pieceCorrectX = piece.correctCol * pieceSize;
+    const pieceCorrectY = piece.correctRow * pieceSize;
+
+    const pieceImageX = pieceCorrectX * imageScaleMultiplierX;
+    const pieceImageY = pieceCorrectY * imageScaleMultiplierY;
+    const pieceImageWidth = image.width / puzzleColumns;
+    const pieceImageHeight = image.height / puzzleRows;
+
+    const pieceCanvasX = piece.x - viewOffsetX;
+    const pieceCanvasY = piece.y - viewOffsetY;
+
+    // Draw tabs based on the piece.tabs object
+    const cornerRadius = pieceSize / 10; // You can adjust this value
+
+    ctx.save();
+
+    let piecePath = new Path2D();
+    piecePath.moveTo(pieceCanvasX, pieceCanvasY);
+
+    if (piece.tabs.top !== null) {
+      const tabLocalX = Math.max(
+        Math.min(pieceSize * piece.tabs.top.pos, pieceSize - tabSize * 2),
+        tabSize
+      );
+      const tabX = pieceCanvasX + tabLocalX;
+      const tabY = pieceCanvasY;
+
+      if (piece.tabs.top.isInset) {
+        piecePath.lineTo(tabX, tabY);
+        piecePath.arcTo(
+          tabX,
+          tabY + tabSize,
+          tabX + tabSize,
+          tabY + tabSize,
+          cornerRadius
+        ); // Bottom left
+        piecePath.arcTo(
+          tabX + tabSize,
+          tabY + tabSize,
+          tabX + tabSize,
+          tabY,
+          cornerRadius
+        ); // Bottom right
+        piecePath.lineTo(tabX + tabSize, tabY);
+      } else {
+        piecePath.lineTo(tabX, tabY);
+        piecePath.arcTo(
+          tabX,
+          tabY - tabSize,
+          tabX + tabSize,
+          tabY - tabSize,
+          cornerRadius
+        ); // Top left
+        piecePath.arcTo(
+          tabX + tabSize,
+          tabY - tabSize,
+          tabX + tabSize,
+          tabY,
+          cornerRadius
+        ); // Top right
+        piecePath.lineTo(tabX + tabSize, tabY);
+      }
+    }
+    piecePath.lineTo(pieceCanvasX + pieceSize, pieceCanvasY);
+
+    if (piece.tabs.right !== null) {
+      const tabLocalY = Math.max(
+        Math.min(pieceSize * piece.tabs.right.pos, pieceSize - tabSize * 2),
+        tabSize
+      );
+
+      const tabX = pieceCanvasX + pieceSize;
+      const tabY = pieceCanvasY + tabLocalY;
+
+      if (piece.tabs.right.isInset) {
+        piecePath.lineTo(pieceCanvasX + pieceSize, tabY);
+        piecePath.arcTo(
+          tabX - tabSize,
+          tabY,
+          tabX - tabSize,
+          tabY + tabSize,
+          cornerRadius
+        ); // Top left
+        piecePath.arcTo(
+          tabX - tabSize,
+          tabY + tabSize,
+          tabX,
+          tabY + tabSize,
+          cornerRadius
+        ); // Bottom left
+        piecePath.lineTo(pieceCanvasX + pieceSize, tabY + tabSize);
+      } else {
+        piecePath.lineTo(pieceCanvasX + pieceSize, tabY);
+        piecePath.arcTo(
+          tabX + tabSize,
+          tabY,
+          tabX + tabSize,
+          tabY + tabSize,
+          cornerRadius
+        ); // Top left
+        piecePath.arcTo(
+          tabX + tabSize,
+          tabY + tabSize,
+          tabX,
+          tabY + tabSize,
+          cornerRadius
+        ); // Bottom left
+        piecePath.lineTo(pieceCanvasX + pieceSize, tabY + tabSize);
+      }
+    }
+    piecePath.lineTo(pieceCanvasX + pieceSize, pieceCanvasY + pieceSize);
+
+    if (piece.tabs.bottom !== null) {
+      const tabLocalX = Math.max(
+        Math.min(pieceSize * piece.tabs.bottom.pos, pieceSize - tabSize * 2),
+        tabSize
+      );
+      const tabX = pieceCanvasX + tabLocalX;
+      const tabY = pieceCanvasY + pieceSize;
+
+      if (piece.tabs.bottom.isInset) {
+        piecePath.lineTo(tabX + tabSize, tabY);
+        piecePath.arcTo(
+          tabX + tabSize,
+          tabY - tabSize,
+          tabX,
+          tabY - tabSize,
+          cornerRadius
+        ); // Top right
+        piecePath.arcTo(tabX, tabY - tabSize, tabX, tabY, cornerRadius); // Top left
+        piecePath.lineTo(tabX, tabY);
+      } else {
+        piecePath.lineTo(tabX + tabSize, tabY);
+        piecePath.arcTo(
+          tabX + tabSize,
+          tabY + tabSize,
+          tabX,
+          tabY + tabSize,
+          cornerRadius
+        ); // Bottom right
+        piecePath.arcTo(tabX, tabY + tabSize, tabX, tabY, cornerRadius); // Bottom left
+        piecePath.lineTo(tabX, tabY);
+      }
+    }
+    piecePath.lineTo(pieceCanvasX, pieceCanvasY + pieceSize);
+
+    if (piece.tabs.left !== null) {
+      const tabLocalY = Math.max(
+        Math.min(pieceSize * piece.tabs.left.pos, pieceSize - tabSize * 2),
+        tabSize
+      );
+
+      const tabX = pieceCanvasX;
+      const tabY = pieceCanvasY + tabLocalY;
+
+      if (piece.tabs.left.isInset) {
+        piecePath.lineTo(tabX, tabY + tabSize);
+        piecePath.arcTo(
+          tabX + tabSize,
+          tabY + tabSize,
+          tabX + tabSize,
+          tabY,
+          cornerRadius
+        ); // Top left
+        piecePath.arcTo(tabX + tabSize, tabY, tabX, tabY, cornerRadius); // Bottom left
+        piecePath.lineTo(tabX, tabY);
+      } else {
+        piecePath.lineTo(tabX, tabY + tabSize);
+        piecePath.arcTo(
+          tabX - tabSize,
+          tabY + tabSize,
+          tabX - tabSize,
+          tabY,
+          cornerRadius
+        ); // Top left
+        piecePath.arcTo(tabX - tabSize, tabY, tabX, tabY, cornerRadius); // Bottom left
+        piecePath.lineTo(tabX, tabY);
+      }
+    }
+    piecePath.lineTo(pieceCanvasX, pieceCanvasY);
+
+    piecePath.closePath();
+
+    ctx.clip(piecePath);
+
     ctx.drawImage(
       image,
-      piece.correctCol *
-        pieceSize *
-        (image.width / (pieceSize * puzzleColumns)),
-      piece.correctRow * pieceSize * (image.height / (pieceSize * puzzleRows)),
-      image.width / puzzleColumns,
-      image.height / puzzleRows, // Source region (entire image)
-      piece.x - viewOffsetX,
-      piece.y - viewOffsetY,
-      pieceSize,
-      pieceSize // Destination region (scaled to fit the canvas)
+      pieceImageX - tabSize * imageScaleMultiplierX,
+      pieceImageY - tabSize * imageScaleMultiplierY,
+      pieceImageWidth * (1 + tabSizeDecimal * 2),
+      pieceImageHeight * (1 + tabSizeDecimal * 2), // Source region (entire image)
+      pieceCanvasX - tabSize,
+      pieceCanvasY - tabSize,
+      pieceSize + tabSize * 2,
+      pieceSize + tabSize * 2 // Destination region (scaled to fit the canvas)
     );
+
+    ctx.restore();
   });
 
   if (markStartX != null) {
@@ -821,4 +1050,8 @@ function restartTimer() {
 
 function getRandomInt(max) {
   return Math.floor(Math.random() * max);
+}
+
+function getRandomBoolean() {
+  return Math.random() < 0.5;
 }
