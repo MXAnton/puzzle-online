@@ -1098,6 +1098,9 @@ function stopTimer() {
 function startTimer() {
   // Update the timer every second
   timerIntervalId = setInterval(updateTimer, 1000);
+
+  pauseInput.checked = false;
+  pauseInputLabel.innerText = "▶";
 }
 function restartTimer() {
   stopTimer();
@@ -1106,6 +1109,18 @@ function restartTimer() {
   seconds = 0;
   timerText.innerText = formatTime(hours, minutes, seconds);
   startTimer();
+}
+
+const pauseInput = document.getElementById("pause-input");
+const pauseInputLabel = document.getElementById("pause-input__label");
+function setPause(event) {
+  if (event.target.checked) {
+    pauseInputLabel.innerText = "| |";
+    stopTimer();
+  } else {
+    pauseInputLabel.innerText = "▶";
+    startTimer();
+  }
 }
 
 function getRandomInt(max) {

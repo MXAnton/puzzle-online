@@ -66,6 +66,16 @@
       </section>
 
       <nav>
+        <div class="checkbox--primary">
+          <label id="pause-input__label" for="pause-input">▶</label
+          ><input
+            type="checkbox"
+            name="pause-input"
+            id="pause-input"
+            onchange="setPause(event)"
+          />
+        </div>
+
         <button class="btn--primary" onclick="openGenerateModal()">
           Generate
         </button>
