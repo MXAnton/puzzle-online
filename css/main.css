@@ -293,10 +293,12 @@ main > .wrapper {
   box-shadow: 0 0 1rem var(--green);
 }
 
-#victory-message {
+#victory-message,
+#paused-message {
   display: none;
 }
-#victory-message.active {
+#victory-message.active,
+#paused-message.active {
   display: block;
 
   position: absolute;
@@ -318,7 +320,8 @@ main > .wrapper {
 
   background-color: rgba(0, 0, 0, 0.7);
 }
-#victory-message h2 {
+#victory-message h2,
+#paused-message h2 {
   font-size: 2em;
   font-weight: 600;
 

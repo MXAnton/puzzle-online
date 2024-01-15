@@ -1164,6 +1164,7 @@ function startTimer() {
   pauseInputLabel.innerText = "▶";
 
   playMusic();
+  pausedMessage.classList.remove("active");
 }
 function restartTimer() {
   stopTimer();
@@ -1176,17 +1177,21 @@ function restartTimer() {
 
 const pauseInput = document.getElementById("pause-input");
 const pauseInputLabel = document.getElementById("pause-input__label");
+const pausedMessage = document.getElementById("paused-message");
 function setPause(event) {
   if (isPuzzleDone) {
     event.target.checked = false;
+    pausedMessage.classList.remove("active");
     return;
   }
 
   if (event.target.checked) {
     pauseInputLabel.innerText = "| |";
+    pausedMessage.classList.add("active");
     stopTimer();
   } else {
     pauseInputLabel.innerText = "▶";
+    pausedMessage.classList.remove("active");
     startTimer();
   }
 }
