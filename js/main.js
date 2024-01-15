@@ -7,6 +7,8 @@ const zoomInput = document.getElementById("zoom-input");
 const victoryMessage = document.getElementById("victory-message");
 const victoryTime = document.getElementById("victory-time");
 
+let isPuzzleDone = false;
+
 const canvas = document.getElementById("puzzleCanvas");
 const ctx = canvas.getContext("2d");
 canvas.addEventListener("contextmenu", function (event) {
@@ -80,6 +82,7 @@ function generatePuzzle(event) {
   pieces.splice(0, pieces.length);
   piecesMatched.splice(0, piecesMatched.length);
   victoryMessage.classList.remove("active");
+  isPuzzleDone = false;
 
   if (imageInput.files.length <= 0) {
     console.warn("No file selected");
@@ -917,6 +920,8 @@ function checkIfPuzzleDone() {
   }
 }
 function puzzleDone() {
+  isPuzzleDone = true;
+
   stopTimer();
 
   victoryMessage.classList.add("active");
@@ -1148,6 +1153,10 @@ function stopTimer() {
   stopMusic();
 }
 function startTimer() {
+  if (isPuzzleDone) {
+    return;
+  }
+
   // Update the timer every second
   timerIntervalId = setInterval(updateTimer, 1000);
 
@@ -1168,6 +1177,11 @@ function restartTimer() {
 const pauseInput = document.getElementById("pause-input");
 const pauseInputLabel = document.getElementById("pause-input__label");
 function setPause(event) {
+  if (isPuzzleDone) {
+    event.target.checked = false;
+    return;
+  }
+
   if (event.target.checked) {
     pauseInputLabel.innerText = "| |";
     stopTimer();
