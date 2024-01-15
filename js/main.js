@@ -892,10 +892,13 @@ function matchWithSurroundingPieces(_selectedPiece) {
         return;
       }
 
+      // Matched pieces
       piecesMatched[adjacentPieceGroupIndex] = piecesMatched[
         adjacentPieceGroupIndex
       ].concat(piecesMatched[selectedPieceGroupIndex]);
       piecesMatched.splice(selectedPieceGroupIndex, 1);
+
+      playPopSound();
     }
   });
 }
@@ -918,6 +921,8 @@ function puzzleDone() {
 
   victoryMessage.classList.add("active");
   victoryTime.innerText = formatTime(hours, minutes, seconds);
+
+  playSuccessSound();
 }
 
 function handleMouseWheel(event) {
@@ -1139,6 +1144,8 @@ function updateTimer() {
 function stopTimer() {
   clearInterval(timerIntervalId);
   timerIntervalId = null;
+
+  stopMusic();
 }
 function startTimer() {
   // Update the timer every second
@@ -1146,6 +1153,8 @@ function startTimer() {
 
   pauseInput.checked = false;
   pauseInputLabel.innerText = "▶";
+
+  playMusic();
 }
 function restartTimer() {
   stopTimer();
@@ -1166,6 +1175,22 @@ function setPause(event) {
     pauseInputLabel.innerText = "▶";
     startTimer();
   }
+}
+
+const gameMusicElement = document.getElementById("game-music");
+const popSoundElement = document.getElementById("pop-sound");
+const successSoundElement = document.getElementById("success-sound");
+function playMusic() {
+  gameMusicElement.play();
+}
+function stopMusic() {
+  gameMusicElement.pause();
+}
+function playPopSound() {
+  popSoundElement.play();
+}
+function playSuccessSound() {
+  successSoundElement.play();
 }
 
 function getRandomInt(max) {
