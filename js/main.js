@@ -487,6 +487,25 @@ function drawCanvas() {
 }
 
 function setCursor() {
+  if (timerIntervalId == null) {
+    // Game paused
+    const mouseX = prevMouseX - canvas.getBoundingClientRect().left;
+    const mouseY = prevMouseY - canvas.getBoundingClientRect().top;
+
+    if (
+      mouseX >= 0 &&
+      mouseX <= canvas.width &&
+      mouseY >= 0 &&
+      mouseY <= canvas.height
+    ) {
+      document.body.style.cursor = "not-allowed";
+    } else {
+      document.body.style.cursor = "default";
+    }
+
+    return;
+  }
+
   if (!markMade && markStartX != null) {
     // Making mark
     document.body.style.cursor = "pointer";
@@ -502,6 +521,10 @@ function setCursor() {
 }
 
 function handleMouseDown(event) {
+  if (timerIntervalId == null) {
+    return;
+  }
+
   const mouseX =
     event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
   const mouseY =
@@ -586,6 +609,15 @@ function movePieceToLast(_pieceId) {
 }
 
 function handleMouseMove(event) {
+  if (timerIntervalId == null) {
+    // Update previous mouse position
+    prevMouseX = event.clientX;
+    prevMouseY = event.clientY;
+    setCursor();
+
+    return;
+  }
+
   let draw = false;
 
   const mouseX =
@@ -711,6 +743,10 @@ function snapToGrid(value) {
 }
 
 function handleMouseUp(event) {
+  if (timerIntervalId == null) {
+    return;
+  }
+
   switch (event.button) {
     case 0: // Left mouse button
       markDragged = false;
@@ -885,6 +921,10 @@ function puzzleDone() {
 }
 
 function handleMouseWheel(event) {
+  if (timerIntervalId == null) {
+    return;
+  }
+
   // Prevent the default behavior of the mouse wheel (e.g., page scrolling)
   event.preventDefault();
 
@@ -897,6 +937,10 @@ const zoomMinDelay = 40;
 let currentZoomDelay;
 let zoomIntervalId;
 function startZooming(zoomValue) {
+  if (timerIntervalId == null) {
+    return;
+  }
+
   zoom(zoomValue);
 
   currentZoomDelay = zoomStartDelay;
@@ -1094,6 +1138,7 @@ function updateTimer() {
 }
 function stopTimer() {
   clearInterval(timerIntervalId);
+  timerIntervalId = null;
 }
 function startTimer() {
   // Update the timer every second
