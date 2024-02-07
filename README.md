@@ -1,5 +1,5 @@
 # puzzle-online
-Upload image and create your own puzzle in whatever size you want. Done using HTML, CSS and JS.
+Upload an image and create your own puzzle in your desired size. Then put together the puzzle while being timed.
 
 ![Screenshot of the website.](/assets/images/screenshot.jpg)
 
