@@ -50,7 +50,8 @@ This far by working on this project I have advanced more in JavaScript and prima
 The hardest thing so far I think have been to draw things in the correct place and order when having a scene that can be zoomed and moved around inside and a browser window that can be scaled as well.
 
 ## ✨ Improvement/Todo:
-- [ ] https://github.com/MXAnton/puzzle-online/issues/1
+- [x] https://github.com/MXAnton/puzzle-online/issues/1
+- [ ] https://github.com/MXAnton/puzzle-online/issues/2
 - [ ] Choose amount of total pieces instead of x and y, then generate the puzzle in the aspect-ratio of the image.
 - [ ] No need to draw pieces that are outside of canvas.
 - [ ] Update GUI to display controls and timer nicer. 
