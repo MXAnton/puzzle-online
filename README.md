@@ -3,6 +3,9 @@
 # 🧩 Puzzle Online
 Upload an image and create your own puzzle in your desired size. Then put together the puzzle while being timed.
 
+## ► Try it now!
+The site is live on [puzzle-online.netlify.app](https://puzzle-online.netlify.app/).
+
 ## 📦 Technologies:
  - `HTML`
  - `CSS`
