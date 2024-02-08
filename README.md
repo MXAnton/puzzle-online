@@ -1,4 +1,4 @@
-![Screenshot of the website.](/assets/images/screenshot.jpg)
+![Screenshot of the website.](/assets/images/puzzle2.png)
 
 # 🧩 Puzzle Online
 Upload an image and create your own puzzle in your desired size. Then put together the puzzle while being timed.
@@ -59,6 +59,9 @@ The hardest thing so far I think have been to draw things in the correct place a
 
 ## 📸 Showcase:
 ![Screenshot of the website.](/assets/images/screenshot.jpg)
+![Screenshot of the website.](/assets/images/puzzle-pan-lock.png)
+![Screenshot of the website.](/assets/images/puzzle-show-image.png)
+![Screenshot of the website.](/assets/images/puzzle-completed.png)
 
 ## 🚦 Running the Project:
 To run the project just open the `index.html` file in your web browser, or go to [puzzle-online.netlify.app](https://puzzle-online.netlify.app/).
