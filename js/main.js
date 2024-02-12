@@ -978,6 +978,10 @@ function calculatePuzzleSize(_aspectRatio) {
   //    total puzzle size of selection
   puzzleColumns = Math.round(Math.sqrt(puzzlePiecesAmount * _aspectRatio));
   puzzleRows = Math.round(puzzlePiecesAmount / puzzleColumns);
+
+  // Set show image image aspect ratio to puzzle aspect ratio
+  imageShowContainer.querySelector("img").style.aspectRatio =
+    puzzleColumns / puzzleRows;
 }
 //#endregion
 
