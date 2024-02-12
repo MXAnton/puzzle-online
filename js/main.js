@@ -469,7 +469,11 @@ function handleMouseDown(_event) {
             movePieceToLast(_pieceId);
           });
         });
-      } else if (hoveredPiece) {
+
+        break;
+      }
+
+      if (hoveredPiece) {
         selectedPiece = hoveredPiece;
 
         // Calculate the offset from the mouse click position to the piece corner
@@ -487,10 +491,12 @@ function handleMouseDown(_event) {
         });
         // Make sure selectedPiece is last
         movePieceToLast(selectedPiece.id);
-      } else {
-        // Pressing on board
-        startPanningView(_event.clientX, _event.clientY);
+
+        break;
       }
+
+      // Pressing on board
+      startPanningView(_event.clientX, _event.clientY);
 
       break;
     case 2: // Right mouse button
@@ -530,97 +536,18 @@ function handleMouseMove(_event) {
   const mouseY =
     _event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
 
-  // Check if mouse hovers mark
-  if (
-    markMade &&
-    mouseX >= markStartX &&
-    mouseX <= markEndX &&
-    mouseY >= markStartY &&
-    mouseY <= markEndY
-  ) {
-    markHovered = true;
-  } else {
-    markHovered = false;
-  }
-
-  // Check if mouse hovers any puzzle piece
-  // Start backwards to check them in order, Top first
-  let isHoveringPiece = false;
-  for (let i = pieces.length - 1; i >= 0; i--) {
-    const piece = pieces[i];
-    if (
-      mouseX >= piece.x &&
-      mouseX <= piece.x + pieceSize &&
-      mouseY >= piece.y &&
-      mouseY <= piece.y + pieceSize
-    ) {
-      isHoveringPiece = true;
-      hoveredPiece = piece;
-      break;
-    }
-  }
-  if (!isHoveringPiece) {
-    hoveredPiece = null;
-  }
+  checkMouseHoverMark(mouseX, mouseY);
+  checkMouseHoverPiece(mouseX, mouseY);
 
   if (!markMade && markStartX != null) {
     markEndX = mouseX;
     markEndY = mouseY;
   } else if (markDragged) {
-    // Move marked group
-    let x = mouseX - markGrabOffsetX;
-    let y = mouseY - markGrabOffsetY;
-
-    const markWidth = markEndX - markStartX;
-    const markHeight = markEndY - markStartY;
-
-    x = Math.min(Math.max(x, 0), sceneWidth - markWidth);
-    y = Math.min(Math.max(y, 0), sceneHeight - markHeight);
-
-    const xDifference = snapToGrid(x - markStartX);
-    const yDifference = snapToGrid(y - markStartY);
-
-    // Move mark
-    markStartX = snapToGrid(markStartX + xDifference);
-    markStartY = snapToGrid(markStartY + yDifference);
-    markEndX = snapToGrid(markEndX + xDifference);
-    markEndY = snapToGrid(markEndY + yDifference);
-
-    // Move pieces in mark
-    markedGroups.forEach((_markedGroup) => {
-      _markedGroup.forEach((_pieceId) => {
-        const _pieceIndex = pieces.findIndex(
-          (_piece) => _piece.id === _pieceId
-        );
-
-        pieces[_pieceIndex].y = snapToGrid(pieces[_pieceIndex].y + yDifference);
-        pieces[_pieceIndex].x = snapToGrid(pieces[_pieceIndex].x + xDifference);
-      });
-    });
+    moveMarkedPieces(mouseX, mouseY);
 
     draw = true;
   } else if (selectedPiece) {
-    // Drag selected piece and its matched pieces
-    let x = mouseX - selectedPiece.offset.x;
-    let y = mouseY - selectedPiece.offset.y;
-
-    x = Math.min(Math.max(x, 0), sceneWidth - pieceSize);
-    y = Math.min(Math.max(y, 0), sceneHeight - pieceSize);
-
-    const xDifference = x - selectedPiece.x;
-    const yDifference = y - selectedPiece.y;
-
-    const selectedPieceGroupIndex = findIndexWithElement(
-      piecesMatched,
-      selectedPiece.id
-    );
-
-    piecesMatched[selectedPieceGroupIndex].forEach((_pieceId) => {
-      const _pieceIndex = pieces.findIndex((_piece) => _piece.id === _pieceId);
-
-      pieces[_pieceIndex].x = snapToGrid(pieces[_pieceIndex].x + xDifference);
-      pieces[_pieceIndex].y = snapToGrid(pieces[_pieceIndex].y + yDifference);
-    });
+    moveSelectedPieceAndGroup(mouseX, mouseY);
 
     draw = true;
   } else if (panningView || _event.buttons === 4 || panningViewLocked) {
@@ -993,6 +920,94 @@ function createPieces() {
       piecesMatched.push([piece.id]);
     }
   }
+}
+
+function checkMouseHoverMark(_mouseX, _mouseY) {
+  if (
+    markMade &&
+    _mouseX >= markStartX &&
+    _mouseX <= markEndX &&
+    _mouseY >= markStartY &&
+    _mouseY <= markEndY
+  ) {
+    markHovered = true;
+  } else {
+    markHovered = false;
+  }
+}
+
+function checkMouseHoverPiece(_mouseX, _mouseY) {
+  // Check if mouse hovers any puzzle piece
+  // Start backwards to check them in order, Top first
+  for (let i = pieces.length - 1; i >= 0; i--) {
+    const piece = pieces[i];
+    if (
+      _mouseX >= piece.x &&
+      _mouseX <= piece.x + pieceSize &&
+      _mouseY >= piece.y &&
+      _mouseY <= piece.y + pieceSize
+    ) {
+      hoveredPiece = piece;
+      return;
+    }
+  }
+
+  hoveredPiece = null;
+}
+
+function moveMarkedPieces(_mouseX, _mouseY) {
+  // Move marked group
+  let x = _mouseX - markGrabOffsetX;
+  let y = _mouseY - markGrabOffsetY;
+
+  const markWidth = markEndX - markStartX;
+  const markHeight = markEndY - markStartY;
+
+  x = Math.min(Math.max(x, 0), sceneWidth - markWidth);
+  y = Math.min(Math.max(y, 0), sceneHeight - markHeight);
+
+  const xDifference = snapToGrid(x - markStartX);
+  const yDifference = snapToGrid(y - markStartY);
+
+  // Move mark
+  markStartX = snapToGrid(markStartX + xDifference);
+  markStartY = snapToGrid(markStartY + yDifference);
+  markEndX = snapToGrid(markEndX + xDifference);
+  markEndY = snapToGrid(markEndY + yDifference);
+
+  // Move pieces in mark
+  markedGroups.forEach((_markedGroup) => {
+    _markedGroup.forEach((_pieceId) => {
+      const _pieceIndex = pieces.findIndex((_piece) => _piece.id === _pieceId);
+
+      pieces[_pieceIndex].y = snapToGrid(pieces[_pieceIndex].y + yDifference);
+      pieces[_pieceIndex].x = snapToGrid(pieces[_pieceIndex].x + xDifference);
+    });
+  });
+}
+
+function moveSelectedPieceAndGroup(_mouseX, _mouseY) {
+  // Drag selected piece and its matched pieces
+  let x = _mouseX - selectedPiece.offset.x;
+  let y = _mouseY - selectedPiece.offset.y;
+
+  x = Math.min(Math.max(x, 0), sceneWidth - pieceSize);
+  y = Math.min(Math.max(y, 0), sceneHeight - pieceSize);
+
+  const xDifference = x - selectedPiece.x;
+  const yDifference = y - selectedPiece.y;
+
+  const selectedPieceGroupIndex = findIndexWithElement(
+    piecesMatched,
+    selectedPiece.id
+  );
+
+  piecesMatched[selectedPieceGroupIndex].forEach((_pieceId) => {
+    const _pieceIndex = pieces.findIndex((_piece) => _piece.id === _pieceId);
+
+    pieces[_pieceIndex].x = snapToGrid(pieces[_pieceIndex].x + xDifference);
+    pieces[_pieceIndex].y = snapToGrid(pieces[_pieceIndex].y + yDifference);
+  });
 }
 //#endregion
 
