@@ -754,6 +754,13 @@ function handleMouseWheel(_event) {
   zoom(_event.deltaY > 0 ? -0.1 : 0.1);
 }
 
+// Add event listeners for mouse events
+canvas.addEventListener("mousedown", handleMouseDown);
+document.addEventListener("mousemove", handleMouseMove);
+document.addEventListener("mouseup", handleMouseUp);
+// Add event listener for mouse wheel (for zooming)
+canvas.addEventListener("wheel", handleMouseWheel);
+
 function setCursor() {
   if (timerIntervalId == null) {
     // Game paused
@@ -819,11 +826,7 @@ openGenerateModal();
 function generatePuzzle(_event) {
   _event.preventDefault();
 
-  // Clear puzzle
-  pieces.splice(0, pieces.length);
-  piecesMatched.splice(0, piecesMatched.length);
-  victoryMessage.classList.remove("active");
-  isPuzzleDone = false;
+  resetPuzzle();
 
   if (imageInput.files.length <= 0) {
     console.warn("No file selected");
@@ -837,109 +840,48 @@ function generatePuzzle(_event) {
   reader.onload = function (e) {
     // Load image
     imageSrc = e.target.result;
-    imageShow.src = imageSrc;
     image = new Image();
     image.src = imageSrc;
+    imageShow.src = imageSrc;
 
     // Wait for the image to load
     image.onload = function () {
-      setCanvasSize();
-
       calculatePuzzleSize(image.width / image.height);
 
-      // Reset settings
-      zoomLevel = 1;
-      zoomInput.querySelector("span").textContent =
-        Math.round(zoomLevel * 100) + "%";
-      stopPanningView();
-      panningViewLocked = false;
-      document.getElementById("pan-input").checked = false;
-      imageShowContainer.style.display = "none";
-      toggleShowImageLabel.innerText = "🖼🙈";
-      document.getElementById("toggle-show-image").checked = false;
+      setCanvasSize();
 
       sceneWidth = Math.round(canvas.width * zoomLevel);
       sceneHeight = Math.round(canvas.height * zoomLevel);
-
       // Start in center
       viewOffsetX = (sceneWidth - canvas.width) / 2;
       viewOffsetY = (sceneHeight - canvas.height) / 2;
 
-      // Cut the image into 4 rows and 4 columns
       pieceSize = getNewPieceSize();
 
-      for (let row = 0; row < puzzleRows; row++) {
-        for (let col = 0; col < puzzleColumns; col++) {
-          // Create puzzle piece objects with position and size information
-          const piecesLoaded = pieces.length;
+      createPieces();
 
-          let pieceTabs = {};
-          // Left and top tab should be inverted from adjacent piece if any
-          pieceTabs.left =
-            col == 0
-              ? null
-              : {
-                  pos: pieces[piecesLoaded - 1].tabs.right.pos,
-                  isInset: !pieces[piecesLoaded - 1].tabs.right.isInset,
-                };
-          pieceTabs.top =
-            row == 0
-              ? null
-              : {
-                  pos: pieces[piecesLoaded - puzzleColumns].tabs.bottom.pos,
-                  isInset:
-                    !pieces[piecesLoaded - puzzleColumns].tabs.bottom.isInset,
-                };
-          // Right and bottom tab should be randomized if not last
-          pieceTabs.right =
-            col == puzzleColumns - 1
-              ? null
-              : {
-                  pos:
-                    getRandomInt(tabSizeDecimal * 100) / (tabSizeDecimal * 100), // Random 0-1 float with 1 decimal
-                  isInset: getRandomBoolean(), // Random true or false
-                };
-          pieceTabs.bottom =
-            row == puzzleRows - 1
-              ? null
-              : {
-                  pos:
-                    getRandomInt(tabSizeDecimal * 100) / (tabSizeDecimal * 100), // Random 0-1 float with 1 decimal
-                  isInset: getRandomBoolean(), // Random true or false
-                };
-
-          const piece = {
-            id: row * puzzleColumns + col,
-            correctCol: col,
-            correctRow: row,
-            x: snapToGrid(getRandomInt(sceneWidth - pieceSize)),
-            y: snapToGrid(getRandomInt(sceneHeight - pieceSize)),
-            offset: { x: 0, y: 0 }, // Offset from mouse click position to piece corner
-            tabs: pieceTabs,
-          };
-
-          pieces.push(piece);
-          piecesMatched.push([piece.id]);
-        }
-      }
-
-      // Add event listeners for mouse events
-      canvas.addEventListener("mousedown", handleMouseDown);
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
-      // Add event listener for mouse wheel (for zooming)
-      canvas.addEventListener("wheel", handleMouseWheel);
-
-      // Draw the puzzle pieces on the canvas
       drawCanvas();
 
-      // Reset timer
       restartTimer();
 
       closeGenerateModal();
     };
   };
   reader.readAsDataURL(imageFile);
+}
+
+function resetPuzzle() {
+  victoryMessage.classList.remove("active");
+  isPuzzleDone = false;
+  zoomLevel = 1;
+  zoomInput.querySelector("span").textContent =
+    Math.round(zoomLevel * 100) + "%";
+  stopPanningView();
+  panningViewLocked = false;
+  document.getElementById("pan-input").checked = false;
+  imageShowContainer.style.display = "none";
+  toggleShowImageLabel.innerText = "🖼🙈";
+  document.getElementById("toggle-show-image").checked = false;
 }
 
 function calculatePuzzleSize(_aspectRatio) {
@@ -993,6 +935,64 @@ function getNewPieceSize() {
       sceneHeight / (1 + puzzleBoardPadding) / puzzleRows
     )
   );
+}
+
+function createPieces() {
+  pieces.splice(0, pieces.length);
+  piecesMatched.splice(0, piecesMatched.length);
+
+  for (let row = 0; row < puzzleRows; row++) {
+    for (let col = 0; col < puzzleColumns; col++) {
+      // Create puzzle piece objects with position and size information
+      const piecesLoaded = pieces.length;
+
+      let pieceTabs = {};
+      // Left and top tab should be inverted from adjacent piece if any
+      pieceTabs.left =
+        col == 0
+          ? null
+          : {
+              pos: pieces[piecesLoaded - 1].tabs.right.pos,
+              isInset: !pieces[piecesLoaded - 1].tabs.right.isInset,
+            };
+      pieceTabs.top =
+        row == 0
+          ? null
+          : {
+              pos: pieces[piecesLoaded - puzzleColumns].tabs.bottom.pos,
+              isInset:
+                !pieces[piecesLoaded - puzzleColumns].tabs.bottom.isInset,
+            };
+      // Right and bottom tab should be randomized if not last
+      pieceTabs.right =
+        col == puzzleColumns - 1
+          ? null
+          : {
+              pos: getRandomInt(tabSizeDecimal * 100) / (tabSizeDecimal * 100), // Random 0-1 float with 1 decimal
+              isInset: getRandomBoolean(), // Random true or false
+            };
+      pieceTabs.bottom =
+        row == puzzleRows - 1
+          ? null
+          : {
+              pos: getRandomInt(tabSizeDecimal * 100) / (tabSizeDecimal * 100), // Random 0-1 float with 1 decimal
+              isInset: getRandomBoolean(), // Random true or false
+            };
+
+      const piece = {
+        id: row * puzzleColumns + col,
+        correctCol: col,
+        correctRow: row,
+        x: snapToGrid(getRandomInt(sceneWidth - pieceSize)),
+        y: snapToGrid(getRandomInt(sceneHeight - pieceSize)),
+        offset: { x: 0, y: 0 }, // Offset from mouse click position to piece corner
+        tabs: pieceTabs,
+      };
+
+      pieces.push(piece);
+      piecesMatched.push([piece.id]);
+    }
+  }
 }
 //#endregion
 
