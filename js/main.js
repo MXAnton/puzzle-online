@@ -715,7 +715,7 @@ function setCursor() {
     document.body.style.cursor = "grabbing";
   } else if (panningView || panningViewLocked) {
     document.body.style.cursor = "all-scroll";
-  } else if (hoveredPiece) {
+  } else if (hoveredPiece || markHovered) {
     document.body.style.cursor = "grab";
   } else {
     document.body.style.cursor = "default";
