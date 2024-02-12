@@ -89,6 +89,9 @@ let markGrabOffsetY;
 
 //#region VARS - GAME MUSIC
 const gameMusicElement = document.getElementById("game-music");
+const musicInputWrapper = document.getElementById("music-input__wrapper");
+
+let musicOff = false;
 //#endregion
 
 //#region VARS - SOUND EFFECTS
@@ -1192,7 +1195,25 @@ function setDebug(_event) {
 //#endregion
 
 //#region GAME MUSIC
+function setMusicOff(_event) {
+  musicOff = _event.target.checked;
+
+  if (musicOff) {
+    musicInputWrapper.classList.add("off");
+    stopMusic();
+    return;
+  }
+
+  musicInputWrapper.classList.remove("off");
+  playMusic();
+}
+
 function playMusic() {
+  if (musicOff || isPuzzleDone) {
+    stopMusic();
+    return;
+  }
+
   gameMusicElement.play();
 }
 function stopMusic() {

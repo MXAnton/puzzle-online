@@ -148,6 +148,23 @@
             +
           </button>
         </div>
+
+        <div id="music-input__wrapper" class="checkbox--primary">
+          <label for="music-input"
+            ><img src="/assets/icons/music-notes.svg" alt="Music notes" /><img
+              class="music-input__volume--on"
+              src="/assets/icons/volume-on.svg"
+              alt="Volume on" /><img
+              class="music-input__volume--off"
+              src="/assets/icons/volume-off.svg"
+              alt="Volume off" /></label
+          ><input
+            type="checkbox"
+            name="music-input"
+            id="music-input"
+            onchange="setMusicOff(event)"
+          />
+        </div>
       </nav>
 
       <div class="wrapper">

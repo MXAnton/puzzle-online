@@ -74,12 +74,15 @@ label {
 .checkbox--primary label {
   display: block;
 
+  max-height: 100%;
+
   font-size: 1rem;
   font-weight: 700;
   text-transform: uppercase;
   line-height: 1em;
 
   padding: 0.6em 1.2em;
+  box-sizing: border-box;
 
   background-color: var(--color--background);
   color: var(--color--text);
@@ -106,6 +109,9 @@ label {
 }
 .checkbox--primary:has(input[type="checkbox"]:checked) label:hover {
   border-color: var(--black);
+}
+.checkbox--primary label img {
+  height: 1.1em;
 }
 
 #zoom-input {
@@ -335,4 +341,19 @@ main > .wrapper {
 #victory-message #victory-time {
   font-size: 2.5em;
   font-weight: 900;
+}
+
+/* on */
+#music-input__wrapper .music-input__volume--off {
+  display: none;
+}
+#music-input__wrapper .music-input__volume--on {
+  display: inline-block;
+}
+/* off */
+#music-input__wrapper.off .music-input__volume--off {
+  display: inline-block;
+}
+#music-input__wrapper.off .music-input__volume--on {
+  display: none;
 }
