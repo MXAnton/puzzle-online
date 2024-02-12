@@ -452,46 +452,16 @@ function handleMouseDown(_event) {
 
   switch (_event.buttons) {
     case 1: // Left mouse button
-      if (markMade && !markHovered) {
+      if (markMade && markHovered) {
+        onClickMark(mouseX, mouseY);
+        break;
+      } else if (markMade) {
         // Clicked outside mark
         removeMark();
       }
 
-      if (markMade && markHovered) {
-        // Clicked inside mark
-        markDragged = true;
-        markGrabOffsetX = mouseX - markStartX;
-        markGrabOffsetY = mouseY - markStartY;
-
-        // Move all pieces in mark to top of rest of pieces
-        markedGroups.forEach((_markedGroup) => {
-          _markedGroup.forEach((_pieceId) => {
-            movePieceToLast(_pieceId);
-          });
-        });
-
-        break;
-      }
-
       if (hoveredPiece) {
-        selectedPiece = hoveredPiece;
-
-        // Calculate the offset from the mouse click position to the piece corner
-        selectedPiece.offset.x = mouseX - selectedPiece.x;
-        selectedPiece.offset.y = mouseY - selectedPiece.y;
-
-        // Bring the selected piece group to the top of the z-order
-        // by moving the pieces in the group to end of array
-        const selectedPieceGroupIndex = findIndexWithElement(
-          piecesMatched,
-          selectedPiece.id
-        );
-        piecesMatched[selectedPieceGroupIndex].forEach((_pieceId) => {
-          movePieceToLast(_pieceId);
-        });
-        // Make sure selectedPiece is last
-        movePieceToLast(selectedPiece.id);
-
+        onClickPiece(mouseX, mouseY);
         break;
       }
 
@@ -500,14 +470,7 @@ function handleMouseDown(_event) {
 
       break;
     case 2: // Right mouse button
-      // Remove old marking
-      removeMark();
-
-      // Start marking pieces with box
-      markStartX = mouseX;
-      markStartY = mouseY;
-      markEndX = mouseX;
-      markEndY = mouseY;
+      startCreateMark(mouseX, mouseY);
       break;
     case 4: // Scroll wheel button
       startPanningView(_event.clientX, _event.clientY);
@@ -894,6 +857,26 @@ function checkMouseHoverPiece(_mouseX, _mouseY) {
   hoveredPiece = null;
 }
 
+function onClickPiece(_mouseX, _mouseY) {
+  selectedPiece = hoveredPiece;
+
+  // Calculate the offset from the mouse click position to the piece corner
+  selectedPiece.offset.x = _mouseX - selectedPiece.x;
+  selectedPiece.offset.y = _mouseY - selectedPiece.y;
+
+  // Bring the selected piece group to the top of the z-order
+  // by moving the pieces in the group to end of array
+  const selectedPieceGroupIndex = findIndexWithElement(
+    piecesMatched,
+    selectedPiece.id
+  );
+  piecesMatched[selectedPieceGroupIndex].forEach((_pieceId) => {
+    movePieceToLast(_pieceId);
+  });
+  // Make sure selectedPiece is last
+  movePieceToLast(selectedPiece.id);
+}
+
 function moveMarkedPieces(_mouseX, _mouseY) {
   // Move marked group
   let x = _mouseX - markGrabOffsetX;
@@ -951,6 +934,17 @@ function moveSelectedPieceAndGroup(_mouseX, _mouseY) {
 //#endregion
 
 //#region MARK MULTIPLE PIECES
+function startCreateMark(_mouseX, _mouseY) {
+  // Remove old marking
+  removeMark();
+
+  // Start marking pieces with box
+  markStartX = _mouseX;
+  markStartY = _mouseY;
+  markEndX = _mouseX;
+  markEndY = _mouseY;
+}
+
 function setMarking(_mouseX, _mouseY) {
   // Set marking
   markDragged = false;
@@ -1005,6 +999,19 @@ function setMarking(_mouseX, _mouseY) {
   if (markStartX !== null) {
     markMade = true;
   }
+}
+
+function onClickMark(_mouseX, _mouseY) {
+  markDragged = true;
+  markGrabOffsetX = _mouseX - markStartX;
+  markGrabOffsetY = _mouseY - markStartY;
+
+  // Move all pieces in mark to top of rest of pieces
+  markedGroups.forEach((_markedGroup) => {
+    _markedGroup.forEach((_pieceId) => {
+      movePieceToLast(_pieceId);
+    });
+  });
 }
 
 function removeMark() {
