@@ -42,28 +42,22 @@
           required
         />
 
-        <label for="puzzle-columns-input">Puzzle columns:</label>
-        <input
-          type="number"
-          name="puzzle-columns-input"
-          id="puzzle-columns-input"
+        <label for="puzzle-size-input">Puzzle size:</label>
+        <select
+          name="puzzle-size-input"
+          id="puzzle-size-input"
           class="btn--primary"
-          min="2"
-          max="30"
-          value="3"
           required
-        />
-        <label for="puzzle-rows-input">Puzzle rows:</label>
-        <input
-          type="number"
-          name="puzzle-rows-input"
-          id="puzzle-rows-input"
-          class="btn--primary"
-          min="2"
-          max="30"
-          value="3"
-          required
-        />
+        >
+          <option value="too-easy">too easy ~8</option>
+          <option value="super-easy">super easy ~16</option>
+          <option value="very-easy">very easy ~32</option>
+          <option value="easy" selected>easy ~64</option>
+          <option value="normal">normal ~128</option>
+          <option value="hard">hard ~256</option>
+          <option value="very-hard">very hard ~512</option>
+          <option value="impossible">impossible ~1024</option>
+        </select>
 
         <input class="btn--secondary" type="submit" value="Generate Puzzle" />
       </form>

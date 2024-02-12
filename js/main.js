@@ -28,8 +28,7 @@ let piecesMatched = [];
 let selectedPiece = null;
 let hoveredPiece = null;
 
-const puzzleColumnsInput = document.getElementById("puzzle-columns-input");
-const puzzleRowsInput = document.getElementById("puzzle-rows-input");
+const puzzleSizeInput = document.getElementById("puzzle-size-input");
 
 let puzzleColumns = 0;
 let puzzleRows = 0;
@@ -846,8 +845,7 @@ function generatePuzzle(_event) {
     image.onload = function () {
       setCanvasSize();
 
-      puzzleColumns = parseInt(puzzleColumnsInput.value);
-      puzzleRows = parseInt(puzzleRowsInput.value);
+      calculatePuzzleSize(image.width / image.height);
 
       // Reset settings
       zoomLevel = 1;
@@ -942,6 +940,44 @@ function generatePuzzle(_event) {
     };
   };
   reader.readAsDataURL(imageFile);
+}
+
+function calculatePuzzleSize(_aspectRatio) {
+  const puzzleSizeValue = puzzleSizeInput.value;
+
+  let puzzlePiecesAmount = 4;
+  switch (puzzleSizeValue) {
+    case "too-easy":
+      puzzlePiecesAmount = 8;
+      break;
+    case "super-easy":
+      puzzlePiecesAmount = 16;
+      break;
+    case "very-easy":
+      puzzlePiecesAmount = 32;
+      break;
+    case "easy":
+      puzzlePiecesAmount = 64;
+      break;
+    case "normal":
+      puzzlePiecesAmount = 128;
+      break;
+    case "hard":
+      puzzlePiecesAmount = 256;
+      break;
+    case "very-hard":
+      puzzlePiecesAmount = 512;
+      break;
+    case "impossible":
+      puzzlePiecesAmount = 1024;
+      break;
+  }
+
+  // Find the number of rows and columns,
+  //    with aspect ratio from image and
+  //    total puzzle size of selection
+  puzzleColumns = Math.round(Math.sqrt(puzzlePiecesAmount * _aspectRatio));
+  puzzleRows = Math.round(puzzlePiecesAmount / puzzleColumns);
 }
 //#endregion
 
