@@ -1222,7 +1222,7 @@ function getFormatedTime(_hours, _minutes, _seconds) {
 }
 
 function startTimer() {
-  if (isPuzzleDone) {
+  if (isPuzzleDone || piecesMatched.length == 0) {
     return;
   }
 
@@ -1271,7 +1271,7 @@ function restartTimer() {
 }
 
 function setPause(_event) {
-  if (isPuzzleDone) {
+  if (isPuzzleDone || piecesMatched.length == 0) {
     _event.target.checked = false;
     pausedMessage.classList.remove("active");
     return;
