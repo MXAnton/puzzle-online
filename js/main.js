@@ -590,73 +590,12 @@ function handleMouseUp(_event) {
       break;
     case 2: // Right mouse button
       if (markStartX != null && markEndX != null) {
-        // Set marking
-        markDragged = false;
-
         const mouseX =
           _event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
         const mouseY =
           _event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
 
-        markEndX = Math.max(markStartX, mouseX);
-        markStartX = Math.min(markStartX, mouseX);
-        markEndY = Math.max(markStartY, mouseY);
-        markStartY = Math.min(markStartY, mouseY);
-
-        // Get all pieces inside mark
-        markedGroups.length = 0;
-        let maxPieceX = null;
-        let minPieceY = null;
-        let minPieceX = null;
-        let maxPieceY = null;
-        for (let i = pieces.length - 1; i >= 0; i--) {
-          const piece = pieces[i];
-
-          if (
-            piece.x + pieceSize > markStartX &&
-            piece.x < markEndX &&
-            piece.y + pieceSize > markStartY &&
-            piece.y < markEndY
-          ) {
-            // Piece partly inside mark
-            minPieceX = Math.min(
-              minPieceX !== null ? minPieceX : piece.x,
-              piece.x
-            );
-            maxPieceX = Math.max(
-              maxPieceX !== null ? maxPieceX : piece.x,
-              piece.x + pieceSize
-            );
-            minPieceY = Math.min(
-              minPieceY !== null ? minPieceY : piece.y,
-              piece.y
-            );
-            maxPieceY = Math.max(
-              maxPieceY !== null ? maxPieceY : piece.y,
-              piece.y + pieceSize
-            );
-
-            if (findIndexWithElement(markedGroups, piece.id) === -1) {
-              // Piece group NOT already in markedGroups array
-              const pieceGroupIndex = findIndexWithElement(
-                piecesMatched,
-                piece.id
-              );
-              markedGroups.push(piecesMatched[pieceGroupIndex]);
-            }
-          }
-        }
-
-        // Scale marking to edge of edge pieces, to just wrap all marked pieces
-        markStartX = minPieceX;
-        markEndX = maxPieceX;
-        markStartY = minPieceY;
-        markEndY = maxPieceY;
-
-        // if markStartX == null then no piece was marked
-        if (markStartX !== null) {
-          markMade = true;
-        }
+        setMarking(mouseX, mouseY);
       }
       break;
     case 1: // Scroll wheel button
@@ -1012,6 +951,62 @@ function moveSelectedPieceAndGroup(_mouseX, _mouseY) {
 //#endregion
 
 //#region MARK MULTIPLE PIECES
+function setMarking(_mouseX, _mouseY) {
+  // Set marking
+  markDragged = false;
+
+  markEndX = Math.max(markStartX, _mouseX);
+  markStartX = Math.min(markStartX, _mouseX);
+  markEndY = Math.max(markStartY, _mouseY);
+  markStartY = Math.min(markStartY, _mouseY);
+
+  // Get all pieces inside mark
+  markedGroups.length = 0;
+  let maxPieceX = null;
+  let minPieceY = null;
+  let minPieceX = null;
+  let maxPieceY = null;
+  for (let i = pieces.length - 1; i >= 0; i--) {
+    const piece = pieces[i];
+
+    if (
+      piece.x + pieceSize > markStartX &&
+      piece.x < markEndX &&
+      piece.y + pieceSize > markStartY &&
+      piece.y < markEndY
+    ) {
+      // Piece partly inside mark
+      minPieceX = Math.min(minPieceX !== null ? minPieceX : piece.x, piece.x);
+      maxPieceX = Math.max(
+        maxPieceX !== null ? maxPieceX : piece.x,
+        piece.x + pieceSize
+      );
+      minPieceY = Math.min(minPieceY !== null ? minPieceY : piece.y, piece.y);
+      maxPieceY = Math.max(
+        maxPieceY !== null ? maxPieceY : piece.y,
+        piece.y + pieceSize
+      );
+
+      if (findIndexWithElement(markedGroups, piece.id) === -1) {
+        // Piece group NOT already in markedGroups array
+        const pieceGroupIndex = findIndexWithElement(piecesMatched, piece.id);
+        markedGroups.push(piecesMatched[pieceGroupIndex]);
+      }
+    }
+  }
+
+  // Scale marking to edge of edge pieces, to just wrap all marked pieces
+  markStartX = minPieceX;
+  markEndX = maxPieceX;
+  markStartY = minPieceY;
+  markEndY = maxPieceY;
+
+  // if markStartX == null then no piece was marked
+  if (markStartX !== null) {
+    markMade = true;
+  }
+}
+
 function removeMark() {
   markMade = false;
   markDragged = false;
