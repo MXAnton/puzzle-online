@@ -138,7 +138,7 @@ canvas.addEventListener("contextmenu", function (_event) {
   _event.preventDefault();
 });
 
-function setCanvasStyle() {
+function setCanvasSize() {
   canvas.width = mainWrapperElement.clientWidth;
   canvas.height = mainWrapperElement.clientHeight;
 
@@ -146,8 +146,8 @@ function setCanvasStyle() {
 
   zoomChange();
 }
-setCanvasStyle();
-window.onresize = setCanvasStyle;
+setCanvasSize();
+window.onresize = setCanvasSize;
 
 function drawCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -841,7 +841,7 @@ function generatePuzzle(_event) {
 
     // Wait for the image to load
     image.onload = function () {
-      setCanvasStyle();
+      setCanvasSize();
 
       puzzleColumns = parseInt(puzzleColumnsInput.value);
       puzzleRows = parseInt(puzzleRowsInput.value);
