@@ -120,25 +120,25 @@
             type="checkbox"
             name="pan-input"
             id="pan-input"
-            onchange="setPanning(event)"
+            onchange="setPanViewLock(event)"
           />
         </div>
 
         <div id="zoom-input" class="btn--primary">
           <button
-            onmousedown="startZooming(-0.1)"
-            onmouseup="stopZooming()"
-            onmouseleave="stopZooming()"
-            onmouseout="stopZooming()"
+            onmousedown="startAutoZoom(-0.1)"
+            onmouseup="stopAutoZoom()"
+            onmouseleave="stopAutoZoom()"
+            onmouseout="stopAutoZoom()"
           >
             -
           </button>
           <span>100%</span>
           <button
-            onmousedown="startZooming(0.1)"
-            onmouseup="stopZooming()"
-            onmouseleave="stopZooming()"
-            onmouseout="stopZooming()"
+            onmousedown="startAutoZoom(0.1)"
+            onmouseup="stopAutoZoom()"
+            onmouseleave="stopAutoZoom()"
+            onmouseout="stopAutoZoom()"
           >
             +
           </button>

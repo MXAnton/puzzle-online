@@ -1,55 +1,80 @@
-const imageInput = document.getElementById("image-input");
-const puzzleColumnsInput = document.getElementById("puzzle-columns-input");
-const puzzleRowsInput = document.getElementById("puzzle-rows-input");
+/*
+------------------------------
+BEGIN:  __ VARS DECLARATION __
+*/
 
-const zoomInput = document.getElementById("zoom-input");
+//#region VARS - CANVAS & SCENE
+let sceneWidth;
+let sceneHeight;
 
-const victoryMessage = document.getElementById("victory-message");
-const victoryTime = document.getElementById("victory-time");
-
-let isPuzzleDone = false;
+const puzzleBoardPadding = 0.5; // in decimal percentage
 
 const canvas = document.getElementById("puzzleCanvas");
 const ctx = canvas.getContext("2d");
-canvas.addEventListener("contextmenu", function (event) {
-  // Prevent the default right-click behavior
-  event.preventDefault();
-});
+const mainWrapperElement = document
+  .querySelector("main")
+  .querySelector(".wrapper");
+
+let viewOffsetX = 0; // 0-x
+let viewOffsetY = 0; // 0-y
+//#endregion
+
+//#region VARS - PUZZLE PIECES
+let pieceSize;
+const tabSizeDecimal = 0.2;
 
 const pieces = [];
 let piecesMatched = [];
 let selectedPiece = null;
 let hoveredPiece = null;
 
+const puzzleColumnsInput = document.getElementById("puzzle-columns-input");
+const puzzleRowsInput = document.getElementById("puzzle-rows-input");
+
 let puzzleColumns = 0;
 let puzzleRows = 0;
+//#endregion
 
-let sceneWidth;
-let sceneHeight;
+//#region VARS - GENERATE PUZZLE
+const generateModal = document.getElementById("generate-modal");
+//#endregion
 
-let pieceSize;
-const tabSizeDecimal = 0.2;
-
-// in decimal percentage
-const puzzleBoardPadding = 0.5;
+//#region VARS - ZOOM
+const zoomInput = document.getElementById("zoom-input");
 
 let zoomLevel = 1; // 1-x (1 is full view visbile)
 const maxZoomLevel = 5;
-let viewOffsetX = 0; // 0-x
-let viewOffsetY = 0; // 0-y
 
+const zoomStartDelay = 400;
+const zoomMinDelay = 40;
+let currentZoomDelay;
+let zoomIntervalId;
+//#endregion
+
+//#region VARS - PAN VIEW
 let panningView = false;
 let panningViewLocked = false;
+//#endregion
 
-let prevMouseX = 0;
-let prevMouseY = 0;
+//#region VARS - IMAGE
+const imageInput = document.getElementById("image-input");
 
 let imageSrc = null;
 let image = new Image();
 let imageScale = 1;
 
-let showDebug = false;
+const imageShowContainer = document.getElementById("image");
+const imageShow = imageShowContainer.querySelector("img");
+const toggleShowImageLabel = document.getElementById(
+  "toggle-show-image__label"
+);
+//#endregion
 
+//#region VARS - DEBUG
+let showDebug = false;
+//#endregion
+
+//#region VARS - MARK MULTIPLE PIECES
 let markedGroups = [];
 let markMade = false;
 let markHovered = false;
@@ -60,11 +85,60 @@ let markEndX = null;
 let markEndY = null;
 let markGrabOffsetX;
 let markGrabOffsetY;
+//#endregion
+
+//#region VARS - GAME MUSIC
+const gameMusicElement = document.getElementById("game-music");
+//#endregion
+
+//#region VARS - SOUND EFFECTS
+const popSoundElement = document.getElementById("pop-sound");
+const successSoundElement = document.getElementById("success-sound");
+//#endregion
+
+//#region VARS - GAME TIMER
+const timerText = document.getElementById("timer");
+let hours = 0;
+let minutes = 0;
+let seconds = 0;
+let timerIntervalId; // Variable to store the interval ID
+
+const pauseInput = document.getElementById("pause-input");
+const pauseInputLabel = document.getElementById("pause-input__label");
+const pausedMessage = document.getElementById("paused-message");
+//#endregion
+
+//#region VARS - PUZZLE COMPLETION
+const victoryMessage = document.getElementById("victory-message");
+const victoryTime = document.getElementById("victory-time");
+
+let isPuzzleDone = false;
+//#endregion
+
+//#region VARS - GENERAL
+let prevMouseX = 0;
+let prevMouseY = 0;
+
+const gridSnapSmoother = 10;
+//#endregion
+
+/*
+END:    ‾‾ VARS DECLARATION ‾‾
+------------------------------
+*/
+
+/*
+------------------------------
+BEGIN:  _____ FUNCTIONS ______
+*/
+
+//#region CANVAS
+canvas.addEventListener("contextmenu", function (_event) {
+  // Prevent the default right-click behavior
+  _event.preventDefault();
+});
 
 function setCanvasStyle() {
-  const mainWrapperElement = document
-    .querySelector("main")
-    .querySelector(".wrapper");
   canvas.width = mainWrapperElement.clientWidth;
   canvas.height = mainWrapperElement.clientHeight;
 
@@ -74,133 +148,6 @@ function setCanvasStyle() {
 }
 setCanvasStyle();
 window.onresize = setCanvasStyle;
-
-function generatePuzzle(event) {
-  event.preventDefault();
-
-  // Clear puzzle
-  pieces.splice(0, pieces.length);
-  piecesMatched.splice(0, piecesMatched.length);
-  victoryMessage.classList.remove("active");
-  isPuzzleDone = false;
-
-  if (imageInput.files.length <= 0) {
-    console.warn("No file selected");
-    imageShow.src = "#";
-    imageSrc = "#";
-    return;
-  }
-  imageFile = imageInput.files[0];
-
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    // Load image
-    imageSrc = e.target.result;
-    imageShow.src = imageSrc;
-    image = new Image();
-    image.src = imageSrc;
-
-    // Wait for the image to load
-    image.onload = function () {
-      setCanvasStyle();
-
-      puzzleColumns = parseInt(puzzleColumnsInput.value);
-      puzzleRows = parseInt(puzzleRowsInput.value);
-
-      // Reset settings
-      zoomLevel = 1;
-      zoomInput.querySelector("span").textContent =
-        Math.round(zoomLevel * 100) + "%";
-      panningView = false;
-      panningViewLocked = false;
-      document.getElementById("pan-input").checked = false;
-      imageShowContainer.style.display = "none";
-      toggleShowImageLabel.innerText = "🖼🙈";
-      document.getElementById("toggle-show-image").checked = false;
-
-      sceneWidth = Math.round(canvas.width * zoomLevel);
-      sceneHeight = Math.round(canvas.height * zoomLevel);
-
-      // Start in center
-      viewOffsetX = (sceneWidth - canvas.width) / 2;
-      viewOffsetY = (sceneHeight - canvas.height) / 2;
-
-      // Cut the image into 4 rows and 4 columns
-      pieceSize = getNewPieceSize();
-
-      for (let row = 0; row < puzzleRows; row++) {
-        for (let col = 0; col < puzzleColumns; col++) {
-          // Create puzzle piece objects with position and size information
-          const piecesLoaded = pieces.length;
-
-          let pieceTabs = {};
-          // Left and top tab should be inverted from adjacent piece if any
-          pieceTabs.left =
-            col == 0
-              ? null
-              : {
-                  pos: pieces[piecesLoaded - 1].tabs.right.pos,
-                  isInset: !pieces[piecesLoaded - 1].tabs.right.isInset,
-                };
-          pieceTabs.top =
-            row == 0
-              ? null
-              : {
-                  pos: pieces[piecesLoaded - puzzleColumns].tabs.bottom.pos,
-                  isInset:
-                    !pieces[piecesLoaded - puzzleColumns].tabs.bottom.isInset,
-                };
-          // Right and bottom tab should be randomized if not last
-          pieceTabs.right =
-            col == puzzleColumns - 1
-              ? null
-              : {
-                  pos:
-                    getRandomInt(tabSizeDecimal * 100) / (tabSizeDecimal * 100), // Random 0-1 float with 1 decimal
-                  isInset: getRandomBoolean(), // Random true or false
-                };
-          pieceTabs.bottom =
-            row == puzzleRows - 1
-              ? null
-              : {
-                  pos:
-                    getRandomInt(tabSizeDecimal * 100) / (tabSizeDecimal * 100), // Random 0-1 float with 1 decimal
-                  isInset: getRandomBoolean(), // Random true or false
-                };
-
-          const piece = {
-            id: row * puzzleColumns + col,
-            correctCol: col,
-            correctRow: row,
-            x: snapToGrid(getRandomInt(sceneWidth - pieceSize)),
-            y: snapToGrid(getRandomInt(sceneHeight - pieceSize)),
-            offset: { x: 0, y: 0 }, // Offset from mouse click position to piece corner
-            tabs: pieceTabs,
-          };
-
-          pieces.push(piece);
-          piecesMatched.push([piece.id]);
-        }
-      }
-
-      // Add event listeners for mouse events
-      canvas.addEventListener("mousedown", handleMouseDown);
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
-      // Add event listener for mouse wheel (for zooming)
-      canvas.addEventListener("wheel", handleMouseWheel);
-
-      // Draw the puzzle pieces on the canvas
-      drawCanvas();
-
-      // Reset timer
-      restartTimer();
-
-      closeGenerateModal();
-    };
-  };
-  reader.readAsDataURL(imageFile);
-}
 
 function drawCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -488,52 +435,20 @@ function drawCanvas() {
     ctx.fillText("Canvas height: " + canvas.height + "px", 5, 83);
   }
 }
+//#endregion
 
-function setCursor() {
-  if (timerIntervalId == null) {
-    // Game paused
-    const mouseX = prevMouseX - canvas.getBoundingClientRect().left;
-    const mouseY = prevMouseY - canvas.getBoundingClientRect().top;
-
-    if (
-      mouseX >= 0 &&
-      mouseX <= canvas.width &&
-      mouseY >= 0 &&
-      mouseY <= canvas.height
-    ) {
-      document.body.style.cursor = "not-allowed";
-    } else {
-      document.body.style.cursor = "default";
-    }
-
-    return;
-  }
-
-  if (!markMade && markStartX != null) {
-    // Making mark
-    document.body.style.cursor = "pointer";
-  } else if (markDragged || selectedPiece) {
-    document.body.style.cursor = "grabbing";
-  } else if (panningView || panningViewLocked) {
-    document.body.style.cursor = "all-scroll";
-  } else if (hoveredPiece) {
-    document.body.style.cursor = "grab";
-  } else {
-    document.body.style.cursor = "default";
-  }
-}
-
-function handleMouseDown(event) {
+//#region MOUSE INPUTS
+function handleMouseDown(_event) {
   if (timerIntervalId == null) {
     return;
   }
 
   const mouseX =
-    event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
+    _event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
   const mouseY =
-    event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
+    _event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
 
-  switch (event.buttons) {
+  switch (_event.buttons) {
     case 1: // Left mouse button
       if (markMade && !markHovered) {
         // Clicked outside mark
@@ -572,7 +487,7 @@ function handleMouseDown(event) {
         movePieceToLast(selectedPiece.id);
       } else {
         // Pressing on board
-        startPanningView(event.clientX, event.clientY);
+        startPanningView(_event.clientX, _event.clientY);
       }
 
       break;
@@ -587,7 +502,7 @@ function handleMouseDown(event) {
       markEndY = mouseY;
       break;
     case 4: // Scroll wheel button
-      startPanningView(event.clientX, event.clientY);
+      startPanningView(_event.clientX, _event.clientY);
       break;
   }
 
@@ -596,26 +511,11 @@ function handleMouseDown(event) {
   drawCanvas();
 }
 
-function movePieceToLast(_pieceId) {
-  // Find the index of the object in the array
-  const index = pieces.findIndex((_piece) => _piece.id === _pieceId);
-  const piece = pieces[index];
-
-  // If the object is found in the array
-  if (index !== -1) {
-    // Remove the object from its current position
-    pieces.splice(index, 1);
-
-    // Add the object to the last position in the array
-    pieces.push(piece);
-  }
-}
-
-function handleMouseMove(event) {
+function handleMouseMove(_event) {
   if (timerIntervalId == null) {
     // Update previous mouse position
-    prevMouseX = event.clientX;
-    prevMouseY = event.clientY;
+    prevMouseX = _event.clientX;
+    prevMouseY = _event.clientY;
     setCursor();
 
     return;
@@ -624,9 +524,9 @@ function handleMouseMove(event) {
   let draw = false;
 
   const mouseX =
-    event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
+    _event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
   const mouseY =
-    event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
+    _event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
 
   // Check if mouse hovers mark
   if (
@@ -721,8 +621,8 @@ function handleMouseMove(event) {
     });
 
     draw = true;
-  } else if (panningView || event.buttons === 4 || panningViewLocked) {
-    panView(event.clientX, event.clientY);
+  } else if (panningView || _event.buttons === 4 || panningViewLocked) {
+    panView(_event.clientX, _event.clientY);
 
     draw = true;
   }
@@ -735,25 +635,19 @@ function handleMouseMove(event) {
   }
 
   // Update previous mouse position
-  prevMouseX = event.clientX;
-  prevMouseY = event.clientY;
+  prevMouseX = _event.clientX;
+  prevMouseY = _event.clientY;
 }
 
-const gridSnapSmoother = 10;
-function snapToGrid(value) {
-  const gridSize = pieceSize / gridSnapSmoother;
-  return Math.round(Math.round(value / gridSize) * gridSize);
-}
-
-function handleMouseUp(event) {
+function handleMouseUp(_event) {
   if (timerIntervalId == null) {
     return;
   }
 
-  switch (event.button) {
+  switch (_event.button) {
     case 0: // Left mouse button
       markDragged = false;
-      panningView = false;
+      stopPanningView();
 
       if (selectedPiece) {
         // Check if piece got dropped beside correct matching piece
@@ -771,9 +665,9 @@ function handleMouseUp(event) {
         markDragged = false;
 
         const mouseX =
-          event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
+          _event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
         const mouseY =
-          event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
+          _event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
 
         markEndX = Math.max(markStartX, mouseX);
         markStartX = Math.min(markStartX, mouseX);
@@ -837,7 +731,7 @@ function handleMouseUp(event) {
       }
       break;
     case 1: // Scroll wheel button
-      panningView = false;
+      stopPanningView();
       break;
   }
 
@@ -846,6 +740,220 @@ function handleMouseUp(event) {
   drawCanvas();
 }
 
+function handleMouseWheel(_event) {
+  if (timerIntervalId == null) {
+    return;
+  }
+
+  // Prevent the default behavior of the mouse wheel (e.g., page scrolling)
+  _event.preventDefault();
+
+  // Adjust zoom level based on the direction of the mouse wheel
+  zoom(_event.deltaY > 0 ? -0.1 : 0.1);
+}
+
+function setCursor() {
+  if (timerIntervalId == null) {
+    // Game paused
+    const mouseX = prevMouseX - canvas.getBoundingClientRect().left;
+    const mouseY = prevMouseY - canvas.getBoundingClientRect().top;
+
+    if (
+      mouseX >= 0 &&
+      mouseX <= canvas.width &&
+      mouseY >= 0 &&
+      mouseY <= canvas.height
+    ) {
+      document.body.style.cursor = "not-allowed";
+    } else {
+      document.body.style.cursor = "default";
+    }
+
+    return;
+  }
+
+  if (!markMade && markStartX != null) {
+    // Making mark
+    document.body.style.cursor = "pointer";
+  } else if (markDragged || selectedPiece) {
+    document.body.style.cursor = "grabbing";
+  } else if (panningView || panningViewLocked) {
+    document.body.style.cursor = "all-scroll";
+  } else if (hoveredPiece) {
+    document.body.style.cursor = "grab";
+  } else {
+    document.body.style.cursor = "default";
+  }
+}
+//#endregion
+
+//#region GENERATE PUZZLE
+function openGenerateModal() {
+  generateModal.showModal();
+}
+function closeGenerateModal() {
+  generateModal.close();
+}
+
+generateModal.addEventListener("click", (_event) => {
+  if (_event.target.nodeName !== "DIALOG") {
+    return;
+  }
+
+  const rect = _event.target.getBoundingClientRect();
+
+  if (
+    rect.left > _event.clientX ||
+    rect.right < _event.clientX ||
+    rect.top > _event.clientY ||
+    rect.bottom < _event.clientY
+  ) {
+    closeGenerateModal();
+  }
+});
+
+openGenerateModal();
+
+function generatePuzzle(_event) {
+  _event.preventDefault();
+
+  // Clear puzzle
+  pieces.splice(0, pieces.length);
+  piecesMatched.splice(0, piecesMatched.length);
+  victoryMessage.classList.remove("active");
+  isPuzzleDone = false;
+
+  if (imageInput.files.length <= 0) {
+    console.warn("No file selected");
+    imageShow.src = "#";
+    imageSrc = "#";
+    return;
+  }
+  imageFile = imageInput.files[0];
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    // Load image
+    imageSrc = e.target.result;
+    imageShow.src = imageSrc;
+    image = new Image();
+    image.src = imageSrc;
+
+    // Wait for the image to load
+    image.onload = function () {
+      setCanvasStyle();
+
+      puzzleColumns = parseInt(puzzleColumnsInput.value);
+      puzzleRows = parseInt(puzzleRowsInput.value);
+
+      // Reset settings
+      zoomLevel = 1;
+      zoomInput.querySelector("span").textContent =
+        Math.round(zoomLevel * 100) + "%";
+      stopPanningView();
+      panningViewLocked = false;
+      document.getElementById("pan-input").checked = false;
+      imageShowContainer.style.display = "none";
+      toggleShowImageLabel.innerText = "🖼🙈";
+      document.getElementById("toggle-show-image").checked = false;
+
+      sceneWidth = Math.round(canvas.width * zoomLevel);
+      sceneHeight = Math.round(canvas.height * zoomLevel);
+
+      // Start in center
+      viewOffsetX = (sceneWidth - canvas.width) / 2;
+      viewOffsetY = (sceneHeight - canvas.height) / 2;
+
+      // Cut the image into 4 rows and 4 columns
+      pieceSize = getNewPieceSize();
+
+      for (let row = 0; row < puzzleRows; row++) {
+        for (let col = 0; col < puzzleColumns; col++) {
+          // Create puzzle piece objects with position and size information
+          const piecesLoaded = pieces.length;
+
+          let pieceTabs = {};
+          // Left and top tab should be inverted from adjacent piece if any
+          pieceTabs.left =
+            col == 0
+              ? null
+              : {
+                  pos: pieces[piecesLoaded - 1].tabs.right.pos,
+                  isInset: !pieces[piecesLoaded - 1].tabs.right.isInset,
+                };
+          pieceTabs.top =
+            row == 0
+              ? null
+              : {
+                  pos: pieces[piecesLoaded - puzzleColumns].tabs.bottom.pos,
+                  isInset:
+                    !pieces[piecesLoaded - puzzleColumns].tabs.bottom.isInset,
+                };
+          // Right and bottom tab should be randomized if not last
+          pieceTabs.right =
+            col == puzzleColumns - 1
+              ? null
+              : {
+                  pos:
+                    getRandomInt(tabSizeDecimal * 100) / (tabSizeDecimal * 100), // Random 0-1 float with 1 decimal
+                  isInset: getRandomBoolean(), // Random true or false
+                };
+          pieceTabs.bottom =
+            row == puzzleRows - 1
+              ? null
+              : {
+                  pos:
+                    getRandomInt(tabSizeDecimal * 100) / (tabSizeDecimal * 100), // Random 0-1 float with 1 decimal
+                  isInset: getRandomBoolean(), // Random true or false
+                };
+
+          const piece = {
+            id: row * puzzleColumns + col,
+            correctCol: col,
+            correctRow: row,
+            x: snapToGrid(getRandomInt(sceneWidth - pieceSize)),
+            y: snapToGrid(getRandomInt(sceneHeight - pieceSize)),
+            offset: { x: 0, y: 0 }, // Offset from mouse click position to piece corner
+            tabs: pieceTabs,
+          };
+
+          pieces.push(piece);
+          piecesMatched.push([piece.id]);
+        }
+      }
+
+      // Add event listeners for mouse events
+      canvas.addEventListener("mousedown", handleMouseDown);
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+      // Add event listener for mouse wheel (for zooming)
+      canvas.addEventListener("wheel", handleMouseWheel);
+
+      // Draw the puzzle pieces on the canvas
+      drawCanvas();
+
+      // Reset timer
+      restartTimer();
+
+      closeGenerateModal();
+    };
+  };
+  reader.readAsDataURL(imageFile);
+}
+//#endregion
+
+//#region PUZZLE PIECE
+function getNewPieceSize() {
+  return Math.round(
+    Math.min(
+      sceneWidth / (1 + puzzleBoardPadding) / puzzleColumns,
+      sceneHeight / (1 + puzzleBoardPadding) / puzzleRows
+    )
+  );
+}
+//#endregion
+
+//#region MARK MULTIPLE PIECES
 function removeMark() {
   markMade = false;
   markDragged = false;
@@ -854,6 +962,23 @@ function removeMark() {
   markEndX = null;
   markEndY = null;
   markedGroups.length = 0;
+}
+//#endregion
+
+//#region PUZZLE MATCHING
+function movePieceToLast(_pieceId) {
+  // Find the index of the object in the array
+  const index = pieces.findIndex((_piece) => _piece.id === _pieceId);
+  const piece = pieces[index];
+
+  // If the object is found in the array
+  if (index !== -1) {
+    // Remove the object from its current position
+    pieces.splice(index, 1);
+
+    // Add the object to the last position in the array
+    pieces.push(piece);
+  }
 }
 
 function matchWithSurroundingPieces(_selectedPiece) {
@@ -866,24 +991,24 @@ function matchWithSurroundingPieces(_selectedPiece) {
   );
 
   // Put adjecantPieces and selectedPiece in same array in piecesMatched
-  correctAdjacentPieces.forEach((adjacentPiece) => {
+  correctAdjacentPieces.forEach((_adjacentPiece) => {
     // Check if the pieces are in the same row or column
-    const sameRow = _selectedPiece.correctRow === adjacentPiece.correctRow;
-    const sameCol = _selectedPiece.correctCol === adjacentPiece.correctCol;
+    const sameRow = _selectedPiece.correctRow === _adjacentPiece.correctRow;
+    const sameCol = _selectedPiece.correctCol === _adjacentPiece.correctCol;
 
     if (
       (sameRow &&
-        _selectedPiece.correctCol - adjacentPiece.correctCol ===
-          (_selectedPiece.x - adjacentPiece.x) / pieceSize &&
-        _selectedPiece.y == adjacentPiece.y) ||
+        _selectedPiece.correctCol - _adjacentPiece.correctCol ===
+          (_selectedPiece.x - _adjacentPiece.x) / pieceSize &&
+        _selectedPiece.y == _adjacentPiece.y) ||
       (sameCol &&
-        _selectedPiece.correctRow - adjacentPiece.correctRow ===
-          (_selectedPiece.y - adjacentPiece.y) / pieceSize &&
-        _selectedPiece.x == adjacentPiece.x)
+        _selectedPiece.correctRow - _adjacentPiece.correctRow ===
+          (_selectedPiece.y - _adjacentPiece.y) / pieceSize &&
+        _selectedPiece.x == _adjacentPiece.x)
     ) {
       const adjacentPieceGroupIndex = findIndexWithElement(
         piecesMatched,
-        adjacentPiece.id
+        _adjacentPiece.id
       );
 
       const selectedPieceGroupIndex = findIndexWithElement(
@@ -905,60 +1030,40 @@ function matchWithSurroundingPieces(_selectedPiece) {
     }
   });
 }
-function findIndexWithElement(arrays, element) {
-  for (let i = 0; i < arrays.length; i++) {
-    if (arrays[i].includes(element)) {
-      return i;
-    }
-  }
-  return -1; // Element not found in any array
-}
+//#endregion
 
+//#region PUZZLE COMPLETION
 function checkIfPuzzleDone() {
   if (piecesMatched.length == 1) {
-    puzzleDone();
+    completedPuzzle();
   }
 }
-function puzzleDone() {
+function completedPuzzle() {
   isPuzzleDone = true;
 
   stopTimer();
 
   victoryMessage.classList.add("active");
-  victoryTime.innerText = formatTime(hours, minutes, seconds);
+  victoryTime.innerText = getFormatedTime(hours, minutes, seconds);
 
   playSuccessSound();
 }
+//#endregion
 
-function handleMouseWheel(event) {
+//#region ZOOM
+function startAutoZoom(_zoomValue) {
   if (timerIntervalId == null) {
     return;
   }
 
-  // Prevent the default behavior of the mouse wheel (e.g., page scrolling)
-  event.preventDefault();
-
-  // Adjust zoom level based on the direction of the mouse wheel
-  zoom(event.deltaY > 0 ? -0.1 : 0.1);
-}
-
-const zoomStartDelay = 400;
-const zoomMinDelay = 40;
-let currentZoomDelay;
-let zoomIntervalId;
-function startZooming(zoomValue) {
-  if (timerIntervalId == null) {
-    return;
-  }
-
-  zoom(zoomValue);
+  zoom(_zoomValue);
 
   currentZoomDelay = zoomStartDelay;
-  autoZoom(zoomValue);
+  autoZoom(_zoomValue);
 }
-function autoZoom(zoomValue) {
+function autoZoom(_zoomValue) {
   zoomIntervalId = setInterval(() => {
-    zoom(zoomValue);
+    zoom(_zoomValue);
 
     currentZoomDelay = Math.max(
       currentZoomDelay - (zoomStartDelay * 40) / currentZoomDelay,
@@ -967,14 +1072,14 @@ function autoZoom(zoomValue) {
 
     // Start next autozoom interval with new zoomdelay
     clearInterval(zoomIntervalId);
-    autoZoom(zoomValue);
+    autoZoom(_zoomValue);
   }, currentZoomDelay);
 }
-function stopZooming() {
+function stopAutoZoom() {
   clearInterval(zoomIntervalId);
 }
-function zoom(zoomValue) {
-  zoomLevel += zoomValue;
+function zoom(_zoomValue) {
+  zoomLevel += _zoomValue;
 
   // Ensure zoom level is within reasonable bounds
   zoomLevel = Math.max(1, Math.min(zoomLevel, maxZoomLevel));
@@ -1037,64 +1142,11 @@ function zoomChange() {
   zoomInput.querySelector("span").textContent =
     Math.round(zoomLevel * 100) + "%";
 }
+//#endregion
 
-function getNewPieceSize() {
-  return Math.round(
-    Math.min(
-      sceneWidth / (1 + puzzleBoardPadding) / puzzleColumns,
-      sceneHeight / (1 + puzzleBoardPadding) / puzzleRows
-    )
-  );
-}
-
-const generateModal = document.getElementById("generate-modal");
-openGenerateModal();
-generateModal.addEventListener("click", (event) => {
-  if (event.target.nodeName !== "DIALOG") {
-    return;
-  }
-
-  const rect = event.target.getBoundingClientRect();
-
-  if (
-    rect.left > event.clientX ||
-    rect.right < event.clientX ||
-    rect.top > event.clientY ||
-    rect.bottom < event.clientY
-  ) {
-    closeGenerateModal();
-  }
-});
-function openGenerateModal() {
-  generateModal.showModal();
-}
-function closeGenerateModal() {
-  generateModal.close();
-}
-
-const imageShowContainer = document.getElementById("image");
-const imageShow = imageShowContainer.querySelector("img");
-const toggleShowImageLabel = document.getElementById(
-  "toggle-show-image__label"
-);
-function toggleShowImage(event) {
-  if (event.target.checked) {
-    imageShowContainer.style.display = "block";
-    toggleShowImageLabel.innerText = "🖼🙉";
-  } else {
-    imageShowContainer.style.display = "none";
-    toggleShowImageLabel.innerText = "🖼🙈";
-  }
-}
-
-function setDebug(event) {
-  showDebug = event.target.checked;
-
-  drawCanvas();
-}
-
-function setPanning(event) {
-  panningViewLocked = event.target.checked;
+//#region PAN VIEW
+function setPanViewLock(_event) {
+  panningViewLocked = _event.target.checked;
 
   drawCanvas();
 }
@@ -1114,44 +1166,61 @@ function panView(_clientX, _clientY) {
   viewOffsetX = Math.max(0, Math.min(sceneWidth - canvas.width, viewOffsetX));
   viewOffsetY = Math.max(0, Math.min(sceneHeight - canvas.height, viewOffsetY));
 }
+function stopPanningView() {
+  panningView = false;
+}
+//#endregion
 
-const timerText = document.getElementById("timer");
-let hours = 0;
-let minutes = 0;
-let seconds = 0;
-let timerIntervalId; // Variable to store the interval ID
-// Function to format the time as hh:mm:ss
-function formatTime(hours, minutes, seconds) {
+//#region IMAGE
+function toggleShowImage(_event) {
+  if (_event.target.checked) {
+    imageShowContainer.style.display = "block";
+    toggleShowImageLabel.innerText = "🖼🙉";
+  } else {
+    imageShowContainer.style.display = "none";
+    toggleShowImageLabel.innerText = "🖼🙈";
+  }
+}
+//#endregion
+
+//#region DEBUG
+function setDebug(_event) {
+  showDebug = _event.target.checked;
+
+  drawCanvas();
+}
+//#endregion
+
+//#region GAME MUSIC
+function playMusic() {
+  gameMusicElement.play();
+}
+function stopMusic() {
+  gameMusicElement.pause();
+}
+//#endregion
+
+//#region SOUND EFFECTS
+function playPopSound() {
+  popSoundElement.play();
+}
+function playSuccessSound() {
+  successSoundElement.play();
+}
+//#endregion
+
+//#region GAME TIMER
+function getFormatedTime(_hours, _minutes, _seconds) {
+  // Formats the time as hh:mm:ss
   return (
-    String(hours).padStart(2, "0") +
+    String(_hours).padStart(2, "0") +
     ":" +
-    String(minutes).padStart(2, "0") +
+    String(_minutes).padStart(2, "0") +
     ":" +
-    String(seconds).padStart(2, "0")
+    String(_seconds).padStart(2, "0")
   );
 }
-// Function to update the timer
-function updateTimer() {
-  seconds++;
 
-  if (seconds === 60) {
-    seconds = 0;
-    minutes++;
-
-    if (minutes === 60) {
-      minutes = 0;
-      hours++;
-    }
-  }
-
-  timerText.innerText = formatTime(hours, minutes, seconds);
-}
-function stopTimer() {
-  clearInterval(timerIntervalId);
-  timerIntervalId = null;
-
-  stopMusic();
-}
 function startTimer() {
   if (isPuzzleDone) {
     return;
@@ -1166,26 +1235,49 @@ function startTimer() {
   playMusic();
   pausedMessage.classList.remove("active");
 }
+function updateTimer() {
+  if (isPuzzleDone) {
+    stopTimer();
+    return;
+  }
+
+  seconds++;
+
+  if (seconds === 60) {
+    seconds = 0;
+    minutes++;
+
+    if (minutes === 60) {
+      minutes = 0;
+      hours++;
+    }
+  }
+
+  timerText.innerText = getFormatedTime(hours, minutes, seconds);
+}
+function stopTimer() {
+  clearInterval(timerIntervalId);
+  timerIntervalId = null;
+
+  stopMusic();
+}
 function restartTimer() {
   stopTimer();
   hours = 0;
   minutes = 0;
   seconds = 0;
-  timerText.innerText = formatTime(hours, minutes, seconds);
+  timerText.innerText = getFormatedTime(hours, minutes, seconds);
   startTimer();
 }
 
-const pauseInput = document.getElementById("pause-input");
-const pauseInputLabel = document.getElementById("pause-input__label");
-const pausedMessage = document.getElementById("paused-message");
-function setPause(event) {
+function setPause(_event) {
   if (isPuzzleDone) {
-    event.target.checked = false;
+    _event.target.checked = false;
     pausedMessage.classList.remove("active");
     return;
   }
 
-  if (event.target.checked) {
+  if (_event.target.checked) {
     pauseInputLabel.innerText = "| |";
     pausedMessage.classList.add("active");
     stopTimer();
@@ -1195,27 +1287,33 @@ function setPause(event) {
     startTimer();
   }
 }
+//#endregion
 
-const gameMusicElement = document.getElementById("game-music");
-const popSoundElement = document.getElementById("pop-sound");
-const successSoundElement = document.getElementById("success-sound");
-function playMusic() {
-  gameMusicElement.play();
-}
-function stopMusic() {
-  gameMusicElement.pause();
-}
-function playPopSound() {
-  popSoundElement.play();
-}
-function playSuccessSound() {
-  successSoundElement.play();
+//#region GENERAL FUNCTIONS
+function snapToGrid(_value) {
+  const gridSize = pieceSize / gridSnapSmoother;
+  return Math.round(Math.round(_value / gridSize) * gridSize);
 }
 
-function getRandomInt(max) {
-  return Math.floor(Math.random() * max);
+function findIndexWithElement(_arrays, _element) {
+  for (let i = 0; i < _arrays.length; i++) {
+    if (_arrays[i].includes(_element)) {
+      return i;
+    }
+  }
+  return -1; // Element not found in any array
+}
+
+function getRandomInt(_max) {
+  return Math.floor(Math.random() * _max);
 }
 
 function getRandomBoolean() {
   return Math.random() < 0.5;
 }
+//#endregion
+
+/*
+END:    ‾‾‾‾‾ FUNCTIONS ‾‾‾‾‾‾
+------------------------------
+*/
