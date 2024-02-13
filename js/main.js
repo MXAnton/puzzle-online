@@ -122,8 +122,6 @@ let isPuzzleDone = false;
 //#region VARS - GENERAL
 let prevMouseX = 0;
 let prevMouseY = 0;
-
-const gridSnapSmoother = 10;
 //#endregion
 
 /*
@@ -814,8 +812,8 @@ function createPieces() {
         id: row * puzzleColumns + col,
         correctCol: col,
         correctRow: row,
-        x: snapToGrid(getRandomInt(sceneWidth - pieceSize)),
-        y: snapToGrid(getRandomInt(sceneHeight - pieceSize)),
+        x: getRandomInt(sceneWidth - pieceSize),
+        y: getRandomInt(sceneHeight - pieceSize),
         offset: { x: 0, y: 0 }, // Offset from mouse click position to piece corner
         tabs: pieceTabs,
       };
@@ -890,22 +888,22 @@ function moveMarkedPieces(_mouseX, _mouseY) {
   x = Math.min(Math.max(x, 0), sceneWidth - markWidth);
   y = Math.min(Math.max(y, 0), sceneHeight - markHeight);
 
-  const xDifference = snapToGrid(x - markStartX);
-  const yDifference = snapToGrid(y - markStartY);
+  const xDifference = x - markStartX;
+  const yDifference = y - markStartY;
 
   // Move mark
-  markStartX = snapToGrid(markStartX + xDifference);
-  markStartY = snapToGrid(markStartY + yDifference);
-  markEndX = snapToGrid(markEndX + xDifference);
-  markEndY = snapToGrid(markEndY + yDifference);
+  markStartX = markStartX + xDifference;
+  markStartY = markStartY + yDifference;
+  markEndX = markEndX + xDifference;
+  markEndY = markEndY + yDifference;
 
   // Move pieces in mark
   markedGroups.forEach((_markedGroup) => {
     _markedGroup.forEach((_pieceId) => {
       const _pieceIndex = pieces.findIndex((_piece) => _piece.id === _pieceId);
 
-      pieces[_pieceIndex].y = snapToGrid(pieces[_pieceIndex].y + yDifference);
-      pieces[_pieceIndex].x = snapToGrid(pieces[_pieceIndex].x + xDifference);
+      pieces[_pieceIndex].y = pieces[_pieceIndex].y + yDifference;
+      pieces[_pieceIndex].x = pieces[_pieceIndex].x + xDifference;
     });
   });
 }
@@ -929,8 +927,8 @@ function moveSelectedPieceAndGroup(_mouseX, _mouseY) {
   piecesMatched[selectedPieceGroupIndex].forEach((_pieceId) => {
     const _pieceIndex = pieces.findIndex((_piece) => _piece.id === _pieceId);
 
-    pieces[_pieceIndex].x = snapToGrid(pieces[_pieceIndex].x + xDifference);
-    pieces[_pieceIndex].y = snapToGrid(pieces[_pieceIndex].y + yDifference);
+    pieces[_pieceIndex].x = pieces[_pieceIndex].x + xDifference;
+    pieces[_pieceIndex].y = pieces[_pieceIndex].y + yDifference;
   });
 }
 function moveSelectedPieceAndGroupWithDistance(_distanceX, _distanceY) {
@@ -943,8 +941,8 @@ function moveSelectedPieceAndGroupWithDistance(_distanceX, _distanceY) {
   piecesMatched[selectedPieceGroupIndex].forEach((_pieceId) => {
     const _pieceIndex = pieces.findIndex((_piece) => _piece.id === _pieceId);
 
-    pieces[_pieceIndex].x = snapToGrid(pieces[_pieceIndex].x + _distanceX);
-    pieces[_pieceIndex].y = snapToGrid(pieces[_pieceIndex].y + _distanceY);
+    pieces[_pieceIndex].x = pieces[_pieceIndex].x + _distanceX;
+    pieces[_pieceIndex].y = pieces[_pieceIndex].y + _distanceY;
   });
 
   drawCanvas();
@@ -1234,8 +1232,8 @@ function zoomChange() {
     newX = Math.min(Math.max(newX, 0), sceneWidth - pieceSize);
     newY = Math.min(Math.max(newY, 0), sceneHeight - pieceSize);
 
-    newX = snapToGrid(newX);
-    newY = snapToGrid(newY);
+    newX = newX;
+    newY = newY;
 
     piece.x = newX;
     piece.y = newY;
@@ -1421,10 +1419,10 @@ function setPause(_event) {
 //#endregion
 
 //#region GENERAL FUNCTIONS
-function snapToGrid(_value) {
-  const gridSize = pieceSize / gridSnapSmoother;
-  return Math.round(Math.round(_value / gridSize) * gridSize);
-}
+// function snapToGrid(_value) {
+//   const gridSize = pieceSize / gridSnapSmoother;
+//   return Math.round(Math.round(_value / gridSize) * gridSize);
+// }
 
 function findIndexWithElement(_arrays, _element) {
   for (let i = 0; i < _arrays.length; i++) {
