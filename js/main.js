@@ -154,29 +154,28 @@ window.onresize = setCanvasSize;
 function drawCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  const tabSize = pieceSize * tabSizeDecimal;
+  const cornerRadius = pieceSize / 10; // You can adjust this value
+
+  const imageScaleMultiplierX = image.width / (pieceSize * puzzleColumns);
+  const imageScaleMultiplierY = image.height / (pieceSize * puzzleRows);
+  const pieceImageWidth = image.width / puzzleColumns;
+  const pieceImageHeight = image.height / puzzleRows;
   pieces.forEach((piece) => {
     // Draw only the corresponding part of the image for each puzzle piece
-    const tabSize = pieceSize * tabSizeDecimal;
-
-    const imageScaleMultiplierX = image.width / (pieceSize * puzzleColumns);
-    const imageScaleMultiplierY = image.height / (pieceSize * puzzleRows);
 
     const pieceCorrectX = piece.correctCol * pieceSize;
     const pieceCorrectY = piece.correctRow * pieceSize;
 
     const pieceImageX = pieceCorrectX * imageScaleMultiplierX;
     const pieceImageY = pieceCorrectY * imageScaleMultiplierY;
-    const pieceImageWidth = image.width / puzzleColumns;
-    const pieceImageHeight = image.height / puzzleRows;
 
     const pieceCanvasX = piece.x - viewOffsetX;
     const pieceCanvasY = piece.y - viewOffsetY;
 
-    // Draw tabs based on the piece.tabs object
-    const cornerRadius = pieceSize / 10; // You can adjust this value
-
     ctx.save();
 
+    // Draw tabs based on the piece.tabs object
     let piecePath = new Path2D();
     piecePath.moveTo(pieceCanvasX, pieceCanvasY);
 
@@ -510,9 +509,7 @@ function handleMouseMove(_event) {
 
     draw = true;
   } else if (selectedPiece) {
-    moveSelectedPieceAndGroup(mouseX, mouseY);
-
-    draw = true;
+    draw = moveSelectedPieceAndGroup(mouseX, mouseY);
   } else if (panningView || _event.buttons === 4 || panningViewLocked) {
     panView(_event.clientX, _event.clientY);
 
@@ -919,6 +916,13 @@ function moveSelectedPieceAndGroup(_mouseX, _mouseY) {
   const xDifference = x - selectedPiece.x;
   const yDifference = y - selectedPiece.y;
 
+  if (
+    Math.abs(xDifference) < (pieceMatchDistanceDecimal * pieceSize) / 4 &&
+    Math.abs(yDifference) < (pieceMatchDistanceDecimal * pieceSize) / 4
+  ) {
+    return false;
+  }
+
   const selectedPieceGroupIndex = findIndexWithElement(
     piecesMatched,
     selectedPiece.id
@@ -930,6 +934,8 @@ function moveSelectedPieceAndGroup(_mouseX, _mouseY) {
     pieces[_pieceIndex].x = pieces[_pieceIndex].x + xDifference;
     pieces[_pieceIndex].y = pieces[_pieceIndex].y + yDifference;
   });
+
+  return true;
 }
 function moveSelectedPieceAndGroupWithDistance(_distanceX, _distanceY) {
   // Drag selected piece and its matched pieces
