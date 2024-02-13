@@ -1082,10 +1082,8 @@ function moveSelectedPieceAndGroup(_mouseX, _mouseY) {
   const xDifference = x - selectedPiece.x;
   const yDifference = y - selectedPiece.y;
 
-  if (
-    Math.abs(xDifference) < (pieceMatchDistanceDecimal * pieceSize) / 4 &&
-    Math.abs(yDifference) < (pieceMatchDistanceDecimal * pieceSize) / 4
-  ) {
+  if (Math.abs(xDifference) < 1 && Math.abs(yDifference) < 1) {
+    // No difference in movement
     return;
   }
 
