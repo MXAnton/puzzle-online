@@ -1544,6 +1544,10 @@ function playMusic() {
 function stopMusic() {
   gameMusicElement.pause();
 }
+function restartMusic() {
+  // Set the current time to 0 to restart from the beginning
+  gameMusicElement.currentTime = 0;
+}
 //#endregion
 
 //#region SOUND EFFECTS
@@ -1613,6 +1617,9 @@ function restartTimer() {
   minutes = 0;
   seconds = 0;
   timerText.innerText = getFormatedTime(hours, minutes, seconds);
+
+  restartMusic();
+
   startTimer();
 }
 
