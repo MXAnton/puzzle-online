@@ -177,8 +177,16 @@ function setCanvasSize() {
 setCanvasSize();
 window.onresize = setCanvasSize;
 
-function drawCanvas() {
+function drawMainCanvas() {
   mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+
+  if (piecesMatched.length <= 1 && selectedPiece != null) {
+    // Pieces are all matched or not generated
+    // Nothing to draw in this function
+    // If pieces are generated they are also all selected
+    //  which means all pieces will be drawn in drawSelectedPieces()
+    return;
+  }
 
   const tabSize = pieceSize * tabSizeDecimal;
 
@@ -186,7 +194,28 @@ function drawCanvas() {
   const imageScaleMultiplierY = image.height / (pieceSize * puzzleRows);
   const pieceImageWidth = image.width / puzzleColumns;
   const pieceImageHeight = image.height / puzzleRows;
+
+  let selectedPieceGroupIndex = null;
+  if (selectedPiece != null) {
+    selectedPieceGroupIndex = findIndexWithElement(
+      piecesMatched,
+      selectedPiece.id
+    );
+  }
+
+  const markedPieces = [].concat(...markedGroups);
+
   pieces.forEach((piece) => {
+    if (
+      piece == selectedPiece ||
+      (selectedPieceGroupIndex != null &&
+        piecesMatched[selectedPieceGroupIndex].includes(piece.id)) ||
+      (markedPieces != null && markedPieces.includes(piece.id))
+    ) {
+      // Selected pieces gets drawn independently in drawSelectedPieces()
+      return;
+    }
+
     // Draw only the corresponding part of the image for each puzzle piece
 
     const pieceCorrectX = piece.correctCol * pieceSize;
@@ -236,6 +265,101 @@ function drawCanvas() {
     );
 
     mainCtx.restore();
+  });
+}
+
+function drawSelectedPieces() {
+  selectedPiecesCtx.clearRect(
+    0,
+    0,
+    selectedPiecesCanvas.width,
+    selectedPiecesCanvas.height
+  );
+
+  // Set piece vars
+  const tabSize = pieceSize * tabSizeDecimal;
+  const imageScaleMultiplierX = image.width / (pieceSize * puzzleColumns);
+  const imageScaleMultiplierY = image.height / (pieceSize * puzzleRows);
+  const pieceImageWidth = image.width / puzzleColumns;
+  const pieceImageHeight = image.height / puzzleRows;
+
+  let piecesToDraw = [];
+
+  // Add selectedPiece and its matched pieces to piecesToDraw
+  if (selectedPiece != null) {
+    const selectedPieceGroupIndex = findIndexWithElement(
+      piecesMatched,
+      selectedPiece.id
+    );
+
+    piecesMatched[selectedPieceGroupIndex].forEach((_pieceId) => {
+      piecesToDraw.push(pieces.find((_piece) => _piece.id === _pieceId));
+    });
+  }
+
+  // Add marked pieces to pieces to draw
+  if (markedGroups != null) {
+    const markedPieces = [].concat(...markedGroups);
+
+    markedPieces.forEach((_pieceId) => {
+      piecesToDraw.push(pieces.find((_piece) => _piece.id === _pieceId));
+    });
+  }
+
+  if (piecesToDraw == null || piecesToDraw.length == 0) {
+    return;
+  }
+
+  piecesToDraw.forEach((piece) => {
+    // Draw only the corresponding part of the image for each puzzle piece
+
+    const pieceCorrectX = piece.correctCol * pieceSize;
+    const pieceCorrectY = piece.correctRow * pieceSize;
+
+    const pieceImageX = pieceCorrectX * imageScaleMultiplierX;
+    const pieceImageY = pieceCorrectY * imageScaleMultiplierY;
+
+    const pieceCanvasX = piece.x - viewOffsetX;
+    const pieceCanvasY = piece.y - viewOffsetY;
+
+    selectedPiecesCtx.save();
+
+    // Draw tabs based on the piece.tabs object
+    let piecePath = getNewPiecePath(
+      piece.tabs,
+      pieceCanvasX,
+      pieceCanvasY,
+      tabSize
+    );
+
+    if (selectedPiece && piece.id == selectedPiece.id) {
+      // Add shadow behind selected piece
+      selectedPiecesCtx.fillStyle = "rgba(0, 0, 0, 0.4)";
+
+      // Apply the scale transformation to the context
+      selectedPiecesCtx.translate(pieceSize / 20, pieceSize / 20);
+
+      // Fill scaled path with shadow color
+      selectedPiecesCtx.fill(piecePath);
+
+      // Reset the transformation to avoid affecting future drawings
+      selectedPiecesCtx.setTransform(1, 0, 0, 1, 0, 0);
+    }
+
+    selectedPiecesCtx.clip(piecePath);
+    selectedPiecesCtx.drawImage(
+      image,
+      pieceImageX - tabSize * imageScaleMultiplierX,
+      pieceImageY - tabSize * imageScaleMultiplierY,
+      pieceImageWidth * (1 + tabSizeDecimal * 2),
+      pieceImageHeight * (1 + tabSizeDecimal * 2), // Source region (entire image)
+      pieceCanvasX - tabSize,
+      pieceCanvasY - tabSize,
+      pieceSize + tabSize * 2,
+      pieceSize + tabSize * 2 // Destination region (scaled to fit the mainCanvas)
+    );
+
+    selectedPiecesCtx.restore();
   });
 }
 
@@ -528,8 +652,6 @@ function handleMouseDown(_event) {
   }
 
   setCursor();
-
-  drawCanvas();
 }
 
 function handleMouseMove(_event) {
@@ -581,13 +703,7 @@ function handleMouseUp(_event) {
       stopPanningView();
 
       if (selectedPiece) {
-        // Check if piece got dropped beside correct matching piece
-        matchWithSurroundingPieces(selectedPiece);
-
-        // Drop selected piece
-        selectedPiece = null;
-
-        checkIfPuzzleDone();
+        dropSelectedPiece();
       }
       break;
     case 2: // Right mouse button
@@ -608,8 +724,6 @@ function handleMouseUp(_event) {
   }
 
   setCursor();
-
-  drawCanvas();
 }
 
 function handleMouseWheel(_event) {
@@ -728,7 +842,11 @@ function generatePuzzle(_event) {
 
       createPieces();
 
-      drawCanvas();
+      drawMainCanvas();
+      drawSelectedPieces();
+      drawMark();
+      drawPanView();
+      drawDebug();
 
       restartTimer();
 
@@ -914,6 +1032,9 @@ function onClickPiece(_mouseX, _mouseY) {
   });
   // Make sure selectedPiece is last
   movePieceToLast(selectedPiece.id);
+
+  drawSelectedPieces();
+  drawMainCanvas();
 }
 
 function moveMarkedPieces(_mouseX, _mouseY) {
@@ -947,7 +1068,7 @@ function moveMarkedPieces(_mouseX, _mouseY) {
   });
 
   drawMark();
-  drawCanvas();
+  drawSelectedPieces();
 }
 
 function moveSelectedPieceAndGroup(_mouseX, _mouseY) {
@@ -980,7 +1101,7 @@ function moveSelectedPieceAndGroup(_mouseX, _mouseY) {
     pieces[_pieceIndex].y = pieces[_pieceIndex].y + yDifference;
   });
 
-  drawCanvas();
+  drawSelectedPieces();
 }
 function moveSelectedPieceAndGroupWithDistance(_distanceX, _distanceY) {
   // Drag selected piece and its matched pieces
@@ -996,7 +1117,20 @@ function moveSelectedPieceAndGroupWithDistance(_distanceX, _distanceY) {
     pieces[_pieceIndex].y = pieces[_pieceIndex].y + _distanceY;
   });
 
-  drawCanvas();
+  drawSelectedPieces();
+}
+
+function dropSelectedPiece() {
+  // Check if piece got dropped beside correct matching piece
+  matchWithSurroundingPieces(selectedPiece);
+
+  // Drop selected piece
+  selectedPiece = null;
+
+  checkIfPuzzleDone();
+
+  drawSelectedPieces();
+  drawMainCanvas();
 }
 //#endregion
 
@@ -1085,6 +1219,8 @@ function onClickMark(_mouseX, _mouseY) {
   });
 
   drawMark();
+  drawSelectedPieces();
+  drawMainCanvas();
 }
 
 function removeMark() {
@@ -1314,7 +1450,8 @@ function zoomChange() {
     markEndY *= newScaleMultiplier;
   }
 
-  drawCanvas();
+  drawMainCanvas();
+  drawSelectedPieces();
   drawMark();
 
   // Set UI
@@ -1354,7 +1491,8 @@ function panView(_clientX, _clientY) {
   );
 
   drawPanView();
-  drawCanvas();
+  drawMainCanvas();
+  drawSelectedPieces();
   drawMark();
 }
 function stopPanningView() {
