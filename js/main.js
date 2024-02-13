@@ -21,7 +21,9 @@ let viewOffsetY = 0; // 0-y
 
 //#region VARS - PUZZLE PIECES
 let pieceSize;
-const tabSizeDecimal = 0.2;
+const tabSizeDecimal = 0.2; // Decimal of pieceSize
+
+const pieceMatchDistanceDecimal = 0.2; // Decimal of pieceSize
 
 const pieces = [];
 let piecesMatched = [];
@@ -931,6 +933,22 @@ function moveSelectedPieceAndGroup(_mouseX, _mouseY) {
     pieces[_pieceIndex].y = snapToGrid(pieces[_pieceIndex].y + yDifference);
   });
 }
+function moveSelectedPieceAndGroupWithDistance(_distanceX, _distanceY) {
+  // Drag selected piece and its matched pieces
+  const selectedPieceGroupIndex = findIndexWithElement(
+    piecesMatched,
+    selectedPiece.id
+  );
+
+  piecesMatched[selectedPieceGroupIndex].forEach((_pieceId) => {
+    const _pieceIndex = pieces.findIndex((_piece) => _piece.id === _pieceId);
+
+    pieces[_pieceIndex].x = snapToGrid(pieces[_pieceIndex].x + _distanceX);
+    pieces[_pieceIndex].y = snapToGrid(pieces[_pieceIndex].y + _distanceY);
+  });
+
+  drawCanvas();
+}
 //#endregion
 
 //#region MARK MULTIPLE PIECES
@@ -1042,6 +1060,48 @@ function movePieceToLast(_pieceId) {
 }
 
 function matchWithSurroundingPieces(_selectedPiece) {
+  function getDelta2D(_adjacentPiece) {
+    // Representing _selectedPiece correct col relative to _adjacentPiece correct col:
+    // -1 : selectedPiece should be on left of adjacentPiece
+    // 0  : selectedPiece should be on same col as adjacentPiece
+    // 1  : selectedPiece should be on right of adjacentPiece
+    const deltaCorrectCol =
+      _selectedPiece.correctCol - _adjacentPiece.correctCol;
+    const deltaCorrectRow =
+      _selectedPiece.correctRow - _adjacentPiece.correctRow;
+
+    const selectedPieceCorrectX =
+      _adjacentPiece.x + deltaCorrectCol * pieceSize;
+    const selectedPieceCorrectY =
+      _adjacentPiece.y + deltaCorrectRow * pieceSize;
+
+    // Distance between _selectedPiece pos and adjacent piece slot
+    const deltaX = selectedPieceCorrectX - selectedPiece.x;
+    const deltaY = selectedPieceCorrectY - selectedPiece.y;
+
+    return { deltaX: deltaX, deltaY: deltaY };
+  }
+
+  function inMatchDistance(_deltaX, _deltaY) {
+    const pieceMatchDistance = pieceMatchDistanceDecimal * pieceSize;
+    if (
+      _deltaX >= -pieceMatchDistance &&
+      _deltaX <= pieceMatchDistance &&
+      _deltaY >= -pieceMatchDistance &&
+      _deltaY <= pieceMatchDistance
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  // Gets the pieces that should be on:
+  //    posRelative : yPosRelative : xPosRelative
+  //    (on top)    :      top     : center
+  //    (on right)  :     center   : right
+  //    (on bottom) :     bottom   : center
+  //    (on left)   :     center   : left
   const correctAdjacentPieces = pieces.filter(
     (piece) =>
       (_selectedPiece.correctCol === piece.correctCol &&
@@ -1052,35 +1112,28 @@ function matchWithSurroundingPieces(_selectedPiece) {
 
   // Put adjecantPieces and selectedPiece in same array in piecesMatched
   correctAdjacentPieces.forEach((_adjacentPiece) => {
-    // Check if the pieces are in the same row or column
-    const sameRow = _selectedPiece.correctRow === _adjacentPiece.correctRow;
-    const sameCol = _selectedPiece.correctCol === _adjacentPiece.correctCol;
+    // Check if the pieces are in matchable distance
+    const delta2D = getDelta2D(_adjacentPiece);
 
-    if (
-      (sameRow &&
-        _selectedPiece.correctCol - _adjacentPiece.correctCol ===
-          (_selectedPiece.x - _adjacentPiece.x) / pieceSize &&
-        _selectedPiece.y == _adjacentPiece.y) ||
-      (sameCol &&
-        _selectedPiece.correctRow - _adjacentPiece.correctRow ===
-          (_selectedPiece.y - _adjacentPiece.y) / pieceSize &&
-        _selectedPiece.x == _adjacentPiece.x)
-    ) {
+    if (inMatchDistance(delta2D.deltaX, delta2D.deltaY)) {
       const adjacentPieceGroupIndex = findIndexWithElement(
         piecesMatched,
         _adjacentPiece.id
       );
-
       const selectedPieceGroupIndex = findIndexWithElement(
         piecesMatched,
         _selectedPiece.id
       );
+
       if (adjacentPieceGroupIndex == selectedPieceGroupIndex) {
         // Already in same group
         return;
       }
 
-      // Matched pieces
+      // Snap pieces to position
+      moveSelectedPieceAndGroupWithDistance(delta2D.deltaX, delta2D.deltaY);
+
+      // Match pieces, merge their piecesMatched arrays
       piecesMatched[adjacentPieceGroupIndex] = piecesMatched[
         adjacentPieceGroupIndex
       ].concat(piecesMatched[selectedPieceGroupIndex]);
