@@ -176,172 +176,12 @@ function drawCanvas() {
     ctx.save();
 
     // Draw tabs based on the piece.tabs object
-    let piecePath = new Path2D();
-    piecePath.moveTo(pieceCanvasX, pieceCanvasY);
-
-    if (piece.tabs.top !== null) {
-      const tabLocalX = Math.max(
-        Math.min(pieceSize * piece.tabs.top.pos, pieceSize - tabSize * 2),
-        tabSize
-      );
-      const tabX = pieceCanvasX + tabLocalX;
-      const tabY = pieceCanvasY;
-
-      if (piece.tabs.top.isInset) {
-        piecePath.lineTo(tabX, tabY);
-        piecePath.arcTo(
-          tabX,
-          tabY + tabSize,
-          tabX + tabSize,
-          tabY + tabSize,
-          cornerRadius
-        ); // Bottom left
-        piecePath.arcTo(
-          tabX + tabSize,
-          tabY + tabSize,
-          tabX + tabSize,
-          tabY,
-          cornerRadius
-        ); // Bottom right
-        piecePath.lineTo(tabX + tabSize, tabY);
-      } else {
-        piecePath.lineTo(tabX, tabY);
-        piecePath.arcTo(
-          tabX,
-          tabY - tabSize,
-          tabX + tabSize,
-          tabY - tabSize,
-          cornerRadius
-        ); // Top left
-        piecePath.arcTo(
-          tabX + tabSize,
-          tabY - tabSize,
-          tabX + tabSize,
-          tabY,
-          cornerRadius
-        ); // Top right
-        piecePath.lineTo(tabX + tabSize, tabY);
-      }
-    }
-    piecePath.lineTo(pieceCanvasX + pieceSize, pieceCanvasY);
-
-    if (piece.tabs.right !== null) {
-      const tabLocalY = Math.max(
-        Math.min(pieceSize * piece.tabs.right.pos, pieceSize - tabSize * 2),
-        tabSize
-      );
-
-      const tabX = pieceCanvasX + pieceSize;
-      const tabY = pieceCanvasY + tabLocalY;
-
-      if (piece.tabs.right.isInset) {
-        piecePath.lineTo(pieceCanvasX + pieceSize, tabY);
-        piecePath.arcTo(
-          tabX - tabSize,
-          tabY,
-          tabX - tabSize,
-          tabY + tabSize,
-          cornerRadius
-        ); // Top left
-        piecePath.arcTo(
-          tabX - tabSize,
-          tabY + tabSize,
-          tabX,
-          tabY + tabSize,
-          cornerRadius
-        ); // Bottom left
-        piecePath.lineTo(pieceCanvasX + pieceSize, tabY + tabSize);
-      } else {
-        piecePath.lineTo(pieceCanvasX + pieceSize, tabY);
-        piecePath.arcTo(
-          tabX + tabSize,
-          tabY,
-          tabX + tabSize,
-          tabY + tabSize,
-          cornerRadius
-        ); // Top left
-        piecePath.arcTo(
-          tabX + tabSize,
-          tabY + tabSize,
-          tabX,
-          tabY + tabSize,
-          cornerRadius
-        ); // Bottom left
-        piecePath.lineTo(pieceCanvasX + pieceSize, tabY + tabSize);
-      }
-    }
-    piecePath.lineTo(pieceCanvasX + pieceSize, pieceCanvasY + pieceSize);
-
-    if (piece.tabs.bottom !== null) {
-      const tabLocalX = Math.max(
-        Math.min(pieceSize * piece.tabs.bottom.pos, pieceSize - tabSize * 2),
-        tabSize
-      );
-      const tabX = pieceCanvasX + tabLocalX;
-      const tabY = pieceCanvasY + pieceSize;
-
-      if (piece.tabs.bottom.isInset) {
-        piecePath.lineTo(tabX + tabSize, tabY);
-        piecePath.arcTo(
-          tabX + tabSize,
-          tabY - tabSize,
-          tabX,
-          tabY - tabSize,
-          cornerRadius
-        ); // Top right
-        piecePath.arcTo(tabX, tabY - tabSize, tabX, tabY, cornerRadius); // Top left
-        piecePath.lineTo(tabX, tabY);
-      } else {
-        piecePath.lineTo(tabX + tabSize, tabY);
-        piecePath.arcTo(
-          tabX + tabSize,
-          tabY + tabSize,
-          tabX,
-          tabY + tabSize,
-          cornerRadius
-        ); // Bottom right
-        piecePath.arcTo(tabX, tabY + tabSize, tabX, tabY, cornerRadius); // Bottom left
-        piecePath.lineTo(tabX, tabY);
-      }
-    }
-    piecePath.lineTo(pieceCanvasX, pieceCanvasY + pieceSize);
-
-    if (piece.tabs.left !== null) {
-      const tabLocalY = Math.max(
-        Math.min(pieceSize * piece.tabs.left.pos, pieceSize - tabSize * 2),
-        tabSize
-      );
-
-      const tabX = pieceCanvasX;
-      const tabY = pieceCanvasY + tabLocalY;
-
-      if (piece.tabs.left.isInset) {
-        piecePath.lineTo(tabX, tabY + tabSize);
-        piecePath.arcTo(
-          tabX + tabSize,
-          tabY + tabSize,
-          tabX + tabSize,
-          tabY,
-          cornerRadius
-        ); // Top left
-        piecePath.arcTo(tabX + tabSize, tabY, tabX, tabY, cornerRadius); // Bottom left
-        piecePath.lineTo(tabX, tabY);
-      } else {
-        piecePath.lineTo(tabX, tabY + tabSize);
-        piecePath.arcTo(
-          tabX - tabSize,
-          tabY + tabSize,
-          tabX - tabSize,
-          tabY,
-          cornerRadius
-        ); // Top left
-        piecePath.arcTo(tabX - tabSize, tabY, tabX, tabY, cornerRadius); // Bottom left
-        piecePath.lineTo(tabX, tabY);
-      }
-    }
-    piecePath.lineTo(pieceCanvasX, pieceCanvasY);
-
-    piecePath.closePath();
+    let piecePath = getNewPiecePath(
+      piece.tabs,
+      pieceCanvasX,
+      pieceCanvasY,
+      tabSize
+    );
 
     if (selectedPiece && piece.id == selectedPiece.id) {
       // Add shadow behind selected piece
@@ -435,6 +275,180 @@ function drawCanvas() {
     ctx.fillText("Canvas width: " + canvas.width + "px", 5, 67);
     ctx.fillText("Canvas height: " + canvas.height + "px", 5, 83);
   }
+}
+
+function getNewPiecePath(_pieceTabs, _pieceCanvasX, _pieceCanvasY, _tabSize) {
+  // Draw tabs based on the piece.tabs object
+  const cornerRadius = pieceSize / 10; // You can adjust this value
+
+  let piecePath = new Path2D();
+  piecePath.moveTo(_pieceCanvasX, _pieceCanvasY);
+
+  if (_pieceTabs.top !== null) {
+    const tabLocalX = Math.max(
+      Math.min(pieceSize * _pieceTabs.top.pos, pieceSize - _tabSize * 2),
+      _tabSize
+    );
+    const tabX = _pieceCanvasX + tabLocalX;
+    const tabY = _pieceCanvasY;
+
+    if (_pieceTabs.top.isInset) {
+      piecePath.lineTo(tabX, tabY);
+      piecePath.arcTo(
+        tabX,
+        tabY + _tabSize,
+        tabX + _tabSize,
+        tabY + _tabSize,
+        cornerRadius
+      ); // Bottom left
+      piecePath.arcTo(
+        tabX + _tabSize,
+        tabY + _tabSize,
+        tabX + _tabSize,
+        tabY,
+        cornerRadius
+      ); // Bottom right
+      piecePath.lineTo(tabX + _tabSize, tabY);
+    } else {
+      piecePath.lineTo(tabX, tabY);
+      piecePath.arcTo(
+        tabX,
+        tabY - _tabSize,
+        tabX + _tabSize,
+        tabY - _tabSize,
+        cornerRadius
+      ); // Top left
+      piecePath.arcTo(
+        tabX + _tabSize,
+        tabY - _tabSize,
+        tabX + _tabSize,
+        tabY,
+        cornerRadius
+      ); // Top right
+      piecePath.lineTo(tabX + _tabSize, tabY);
+    }
+  }
+  piecePath.lineTo(_pieceCanvasX + pieceSize, _pieceCanvasY);
+
+  if (_pieceTabs.right !== null) {
+    const tabLocalY = Math.max(
+      Math.min(pieceSize * _pieceTabs.right.pos, pieceSize - _tabSize * 2),
+      _tabSize
+    );
+
+    const tabX = _pieceCanvasX + pieceSize;
+    const tabY = _pieceCanvasY + tabLocalY;
+
+    if (_pieceTabs.right.isInset) {
+      piecePath.lineTo(_pieceCanvasX + pieceSize, tabY);
+      piecePath.arcTo(
+        tabX - _tabSize,
+        tabY,
+        tabX - _tabSize,
+        tabY + _tabSize,
+        cornerRadius
+      ); // Top left
+      piecePath.arcTo(
+        tabX - _tabSize,
+        tabY + _tabSize,
+        tabX,
+        tabY + _tabSize,
+        cornerRadius
+      ); // Bottom left
+      piecePath.lineTo(_pieceCanvasX + pieceSize, tabY + _tabSize);
+    } else {
+      piecePath.lineTo(_pieceCanvasX + pieceSize, tabY);
+      piecePath.arcTo(
+        tabX + _tabSize,
+        tabY,
+        tabX + _tabSize,
+        tabY + _tabSize,
+        cornerRadius
+      ); // Top left
+      piecePath.arcTo(
+        tabX + _tabSize,
+        tabY + _tabSize,
+        tabX,
+        tabY + _tabSize,
+        cornerRadius
+      ); // Bottom left
+      piecePath.lineTo(_pieceCanvasX + pieceSize, tabY + _tabSize);
+    }
+  }
+  piecePath.lineTo(_pieceCanvasX + pieceSize, _pieceCanvasY + pieceSize);
+
+  if (_pieceTabs.bottom !== null) {
+    const tabLocalX = Math.max(
+      Math.min(pieceSize * _pieceTabs.bottom.pos, pieceSize - _tabSize * 2),
+      _tabSize
+    );
+    const tabX = _pieceCanvasX + tabLocalX;
+    const tabY = _pieceCanvasY + pieceSize;
+
+    if (_pieceTabs.bottom.isInset) {
+      piecePath.lineTo(tabX + _tabSize, tabY);
+      piecePath.arcTo(
+        tabX + _tabSize,
+        tabY - _tabSize,
+        tabX,
+        tabY - _tabSize,
+        cornerRadius
+      ); // Top right
+      piecePath.arcTo(tabX, tabY - _tabSize, tabX, tabY, cornerRadius); // Top left
+      piecePath.lineTo(tabX, tabY);
+    } else {
+      piecePath.lineTo(tabX + _tabSize, tabY);
+      piecePath.arcTo(
+        tabX + _tabSize,
+        tabY + _tabSize,
+        tabX,
+        tabY + _tabSize,
+        cornerRadius
+      ); // Bottom right
+      piecePath.arcTo(tabX, tabY + _tabSize, tabX, tabY, cornerRadius); // Bottom left
+      piecePath.lineTo(tabX, tabY);
+    }
+  }
+  piecePath.lineTo(_pieceCanvasX, _pieceCanvasY + pieceSize);
+
+  if (_pieceTabs.left !== null) {
+    const tabLocalY = Math.max(
+      Math.min(pieceSize * _pieceTabs.left.pos, pieceSize - _tabSize * 2),
+      _tabSize
+    );
+
+    const tabX = _pieceCanvasX;
+    const tabY = _pieceCanvasY + tabLocalY;
+
+    if (_pieceTabs.left.isInset) {
+      piecePath.lineTo(tabX, tabY + _tabSize);
+      piecePath.arcTo(
+        tabX + _tabSize,
+        tabY + _tabSize,
+        tabX + _tabSize,
+        tabY,
+        cornerRadius
+      ); // Top left
+      piecePath.arcTo(tabX + _tabSize, tabY, tabX, tabY, cornerRadius); // Bottom left
+      piecePath.lineTo(tabX, tabY);
+    } else {
+      piecePath.lineTo(tabX, tabY + _tabSize);
+      piecePath.arcTo(
+        tabX - _tabSize,
+        tabY + _tabSize,
+        tabX - _tabSize,
+        tabY,
+        cornerRadius
+      ); // Top left
+      piecePath.arcTo(tabX - _tabSize, tabY, tabX, tabY, cornerRadius); // Bottom left
+      piecePath.lineTo(tabX, tabY);
+    }
+  }
+  piecePath.lineTo(_pieceCanvasX, _pieceCanvasY);
+
+  piecePath.closePath();
+
+  return piecePath;
 }
 //#endregion
 
