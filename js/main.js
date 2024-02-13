@@ -859,6 +859,7 @@ function resetPuzzle() {
   panningViewLocked = false;
   stopPanningView();
   document.getElementById("pan-input").checked = false;
+  removeMark();
   imageShowContainer.style.display = "none";
   toggleShowImageLabel.innerText = "🖼🙈";
   document.getElementById("toggle-show-image").checked = false;
