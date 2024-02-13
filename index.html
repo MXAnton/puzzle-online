@@ -162,7 +162,36 @@
       </nav>
 
       <div class="wrapper">
-        <canvas id="puzzleCanvas" width="400" height="400"></canvas>
+        <canvas
+          id="main-canvas"
+          class="puzzle-canvas"
+          width="400"
+          height="400"
+        ></canvas>
+        <canvas
+          id="selected-pieces-canvas"
+          class="puzzle-canvas"
+          width="400"
+          height="400"
+        ></canvas>
+        <canvas
+          id="mark-canvas"
+          class="puzzle-canvas"
+          width="400"
+          height="400"
+        ></canvas>
+        <canvas
+          id="pan-view-canvas"
+          class="puzzle-canvas"
+          width="400"
+          height="400"
+        ></canvas>
+        <canvas
+          id="debug-canvas"
+          class="puzzle-canvas"
+          width="400"
+          height="400"
+        ></canvas>
 
         <div id="image" style="display: none">
           <img src="#" alt="Puzzle image" />

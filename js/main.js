@@ -9,8 +9,18 @@ let sceneHeight;
 
 const puzzleBoardPadding = 0.5; // in decimal percentage
 
-const canvas = document.getElementById("puzzleCanvas");
-const ctx = canvas.getContext("2d");
+const mainCanvas = document.getElementById("main-canvas");
+const selectedPiecesCanvas = document.getElementById("selected-pieces-canvas");
+const markCanvas = document.getElementById("mark-canvas");
+const panViewCanvas = document.getElementById("pan-view-canvas");
+const debugCanvas = document.getElementById("debug-canvas");
+
+const mainCtx = mainCanvas.getContext("2d");
+const selectedPiecesCtx = selectedPiecesCanvas.getContext("2d");
+const markCtx = markCanvas.getContext("2d");
+const panViewCtx = panViewCanvas.getContext("2d");
+const debugCtx = debugCanvas.getContext("2d");
+
 const mainWrapperElement = document
   .querySelector("main")
   .querySelector(".wrapper");
@@ -135,16 +145,32 @@ BEGIN:  _____ FUNCTIONS ______
 */
 
 //#region CANVAS
-canvas.addEventListener("contextmenu", function (_event) {
-  // Prevent the default right-click behavior
-  _event.preventDefault();
-});
+// Prevent the default right-click behavior
+mainCanvas.addEventListener("contextmenu", (_event) => _event.preventDefault());
+selectedPiecesCanvas.addEventListener("contextmenu", (_event) =>
+  _event.preventDefault()
+);
+markCanvas.addEventListener("contextmenu", (_event) => _event.preventDefault());
+panViewCanvas.addEventListener("contextmenu", (_event) =>
+  _event.preventDefault()
+);
+debugCanvas.addEventListener("contextmenu", (_event) =>
+  _event.preventDefault()
+);
 
 function setCanvasSize() {
-  canvas.width = mainWrapperElement.clientWidth;
-  canvas.height = mainWrapperElement.clientHeight;
+  mainCanvas.width = mainWrapperElement.clientWidth;
+  mainCanvas.height = mainWrapperElement.clientHeight;
+  selectedPiecesCanvas.width = mainWrapperElement.clientWidth;
+  selectedPiecesCanvas.height = mainWrapperElement.clientHeight;
+  markCanvas.width = mainWrapperElement.clientWidth;
+  markCanvas.height = mainWrapperElement.clientHeight;
+  panViewCanvas.width = mainWrapperElement.clientWidth;
+  panViewCanvas.height = mainWrapperElement.clientHeight;
+  debugCanvas.width = mainWrapperElement.clientWidth;
+  debugCanvas.height = mainWrapperElement.clientHeight;
 
-  ctx.font = "16px Arial";
+  debugCtx.font = "16px Arial";
 
   zoomChange();
 }
@@ -152,10 +178,9 @@ setCanvasSize();
 window.onresize = setCanvasSize;
 
 function drawCanvas() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
 
   const tabSize = pieceSize * tabSizeDecimal;
-  const cornerRadius = pieceSize / 10; // You can adjust this value
 
   const imageScaleMultiplierX = image.width / (pieceSize * puzzleColumns);
   const imageScaleMultiplierY = image.height / (pieceSize * puzzleRows);
@@ -173,7 +198,7 @@ function drawCanvas() {
     const pieceCanvasX = piece.x - viewOffsetX;
     const pieceCanvasY = piece.y - viewOffsetY;
 
-    ctx.save();
+    mainCtx.save();
 
     // Draw tabs based on the piece.tabs object
     let piecePath = getNewPiecePath(
@@ -185,20 +210,20 @@ function drawCanvas() {
 
     if (selectedPiece && piece.id == selectedPiece.id) {
       // Add shadow behind selected piece
-      ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+      mainCtx.fillStyle = "rgba(0, 0, 0, 0.4)";
 
       // Apply the scale transformation to the context
-      ctx.translate(pieceSize / 20, pieceSize / 20);
+      mainCtx.translate(pieceSize / 20, pieceSize / 20);
 
       // Fill scaled path with shadow color
-      ctx.fill(piecePath);
+      mainCtx.fill(piecePath);
 
       // Reset the transformation to avoid affecting future drawings
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      mainCtx.setTransform(1, 0, 0, 1, 0, 0);
     }
 
-    ctx.clip(piecePath);
-    ctx.drawImage(
+    mainCtx.clip(piecePath);
+    mainCtx.drawImage(
       image,
       pieceImageX - tabSize * imageScaleMultiplierX,
       pieceImageY - tabSize * imageScaleMultiplierY,
@@ -207,24 +232,28 @@ function drawCanvas() {
       pieceCanvasX - tabSize,
       pieceCanvasY - tabSize,
       pieceSize + tabSize * 2,
-      pieceSize + tabSize * 2 // Destination region (scaled to fit the canvas)
+      pieceSize + tabSize * 2 // Destination region (scaled to fit the mainCanvas)
     );
 
-    ctx.restore();
+    mainCtx.restore();
   });
+}
+
+function drawMark() {
+  markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height);
 
   if (markStartX != null) {
     // Draw mark
     const panViewWidth = Math.abs(markStartX - markEndX);
     const panViewHeight = Math.abs(markStartY - markEndY);
 
-    ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+    markCtx.fillStyle = "rgba(255, 255, 255, 0.1)";
     if (markDragged) {
       // Add shadow behind selected piece
-      ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+      markCtx.fillStyle = "rgba(255, 255, 255, 0.2)";
     }
 
-    ctx.fillRect(
+    markCtx.fillRect(
       Math.min(markStartX, markEndX) - viewOffsetX,
       Math.min(markStartY, markEndY) - viewOffsetY,
       panViewWidth,
@@ -232,32 +261,36 @@ function drawCanvas() {
     );
 
     // Set the stroke color to black
-    ctx.strokeStyle = "black";
+    markCtx.strokeStyle = "black";
     // Draw outline
-    ctx.strokeRect(
+    markCtx.strokeRect(
       Math.min(markStartX, markEndX) - viewOffsetX,
       Math.min(markStartY, markEndY) - viewOffsetY,
       panViewWidth,
       panViewHeight
     );
   }
+}
+
+function drawPanView() {
+  panViewCtx.clearRect(0, 0, panViewCanvas.width, panViewCanvas.height);
 
   if (panningView || panningViewLocked) {
     // Draw pan view
-    ctx.fillStyle = "rgba(224, 224, 224, 0.2)";
-    const panViewWidth = canvas.width / 5;
+    panViewCtx.fillStyle = "rgba(224, 224, 224, 0.2)";
+    const panViewWidth = panViewCanvas.width / 5;
     const panViewHeight = panViewWidth / (16 / 9);
-    const panViewOffset = canvas.width / 100;
-    ctx.fillRect(
+    const panViewOffset = panViewCanvas.width / 100;
+    panViewCtx.fillRect(
       panViewOffset,
-      canvas.height - panViewHeight - panViewOffset,
+      panViewCanvas.height - panViewHeight - panViewOffset,
       panViewWidth,
       panViewHeight
     );
     const canvasToPanViewMultiplier = panViewWidth / sceneWidth;
-    ctx.fillRect(
+    panViewCtx.fillRect(
       panViewOffset + viewOffsetX * canvasToPanViewMultiplier,
-      canvas.height -
+      panViewCanvas.height -
         panViewOffset -
         panViewHeight +
         viewOffsetY * canvasToPanViewMultiplier,
@@ -265,15 +298,19 @@ function drawCanvas() {
       panViewHeight / zoomLevel
     );
   }
+}
+
+function drawDebug() {
+  debugCtx.clearRect(0, 0, debugCanvas.width, debugCanvas.height);
 
   if (showDebug) {
     // Draw text on the canvas
-    ctx.fillStyle = "rgba(224, 224, 224, 1)";
-    ctx.fillText("Zoom: " + zoomLevel + "x", 5, 21);
-    ctx.fillText("Scene width: " + sceneWidth + "px", 5, 37);
-    ctx.fillText("Scene height: " + sceneHeight + "px", 5, 53);
-    ctx.fillText("Canvas width: " + canvas.width + "px", 5, 67);
-    ctx.fillText("Canvas height: " + canvas.height + "px", 5, 83);
+    debugCtx.fillStyle = "rgba(224, 224, 224, 1)";
+    debugCtx.fillText("Zoom: " + zoomLevel + "x", 5, 21);
+    debugCtx.fillText("Scene width: " + sceneWidth + "px", 5, 37);
+    debugCtx.fillText("Scene height: " + sceneHeight + "px", 5, 53);
+    debugCtx.fillText("Canvas width: " + mainCanvas.width + "px", 5, 67);
+    debugCtx.fillText("Canvas height: " + mainCanvas.height + "px", 5, 83);
   }
 }
 
@@ -459,9 +496,9 @@ function handleMouseDown(_event) {
   }
 
   const mouseX =
-    _event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
+    _event.clientX - mainCanvas.getBoundingClientRect().left + viewOffsetX;
   const mouseY =
-    _event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
+    _event.clientY - mainCanvas.getBoundingClientRect().top + viewOffsetY;
 
   switch (_event.buttons) {
     case 1: // Left mouse button
@@ -505,12 +542,10 @@ function handleMouseMove(_event) {
     return;
   }
 
-  let draw = false;
-
   const mouseX =
-    _event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
+    _event.clientX - mainCanvas.getBoundingClientRect().left + viewOffsetX;
   const mouseY =
-    _event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
+    _event.clientY - mainCanvas.getBoundingClientRect().top + viewOffsetY;
 
   checkMouseHoverMark(mouseX, mouseY);
   checkMouseHoverPiece(mouseX, mouseY);
@@ -518,24 +553,17 @@ function handleMouseMove(_event) {
   if (!markMade && markStartX != null) {
     markEndX = mouseX;
     markEndY = mouseY;
+
+    drawMark();
   } else if (markDragged) {
     moveMarkedPieces(mouseX, mouseY);
-
-    draw = true;
   } else if (selectedPiece) {
-    draw = moveSelectedPieceAndGroup(mouseX, mouseY);
+    moveSelectedPieceAndGroup(mouseX, mouseY);
   } else if (panningView || _event.buttons === 4 || panningViewLocked) {
     panView(_event.clientX, _event.clientY);
-
-    draw = true;
   }
 
   setCursor();
-
-  if (draw || markStartX != null) {
-    // Draw the puzzle pieces with the updated view offsets
-    drawCanvas();
-  }
 
   // Update previous mouse position
   prevMouseX = _event.clientX;
@@ -565,9 +593,11 @@ function handleMouseUp(_event) {
     case 2: // Right mouse button
       if (markStartX != null && markEndX != null) {
         const mouseX =
-          _event.clientX - canvas.getBoundingClientRect().left + viewOffsetX;
+          _event.clientX -
+          mainCanvas.getBoundingClientRect().left +
+          viewOffsetX;
         const mouseY =
-          _event.clientY - canvas.getBoundingClientRect().top + viewOffsetY;
+          _event.clientY - mainCanvas.getBoundingClientRect().top + viewOffsetY;
 
         setMarking(mouseX, mouseY);
       }
@@ -595,23 +625,23 @@ function handleMouseWheel(_event) {
 }
 
 // Add event listeners for mouse events
-canvas.addEventListener("mousedown", handleMouseDown);
+mainCanvas.addEventListener("mousedown", handleMouseDown);
 document.addEventListener("mousemove", handleMouseMove);
 document.addEventListener("mouseup", handleMouseUp);
 // Add event listener for mouse wheel (for zooming)
-canvas.addEventListener("wheel", handleMouseWheel);
+mainCanvas.addEventListener("wheel", handleMouseWheel);
 
 function setCursor() {
   if (timerIntervalId == null) {
     // Game paused
-    const mouseX = prevMouseX - canvas.getBoundingClientRect().left;
-    const mouseY = prevMouseY - canvas.getBoundingClientRect().top;
+    const mouseX = prevMouseX - mainCanvas.getBoundingClientRect().left;
+    const mouseY = prevMouseY - mainCanvas.getBoundingClientRect().top;
 
     if (
       mouseX >= 0 &&
-      mouseX <= canvas.width &&
+      mouseX <= mainCanvas.width &&
       mouseY >= 0 &&
-      mouseY <= canvas.height
+      mouseY <= mainCanvas.height
     ) {
       document.body.style.cursor = "not-allowed";
     } else {
@@ -643,7 +673,6 @@ function openGenerateModal() {
 function closeGenerateModal() {
   generateModal.close();
 }
-
 generateModal.addEventListener("click", (_event) => {
   if (_event.target.nodeName !== "DIALOG") {
     return;
@@ -660,7 +689,6 @@ generateModal.addEventListener("click", (_event) => {
     closeGenerateModal();
   }
 });
-
 openGenerateModal();
 
 function generatePuzzle(_event) {
@@ -690,11 +718,11 @@ function generatePuzzle(_event) {
 
       setCanvasSize();
 
-      sceneWidth = Math.round(canvas.width * zoomLevel);
-      sceneHeight = Math.round(canvas.height * zoomLevel);
+      sceneWidth = Math.round(mainCanvas.width * zoomLevel);
+      sceneHeight = Math.round(mainCanvas.height * zoomLevel);
       // Start in center
-      viewOffsetX = (sceneWidth - canvas.width) / 2;
-      viewOffsetY = (sceneHeight - canvas.height) / 2;
+      viewOffsetX = (sceneWidth - mainCanvas.width) / 2;
+      viewOffsetY = (sceneHeight - mainCanvas.height) / 2;
 
       pieceSize = getNewPieceSize();
 
@@ -716,8 +744,8 @@ function resetPuzzle() {
   zoomLevel = 1;
   zoomInput.querySelector("span").textContent =
     Math.round(zoomLevel * 100) + "%";
-  stopPanningView();
   panningViewLocked = false;
+  stopPanningView();
   document.getElementById("pan-input").checked = false;
   imageShowContainer.style.display = "none";
   toggleShowImageLabel.innerText = "🖼🙈";
@@ -917,6 +945,9 @@ function moveMarkedPieces(_mouseX, _mouseY) {
       pieces[_pieceIndex].x = pieces[_pieceIndex].x + xDifference;
     });
   });
+
+  drawMark();
+  drawCanvas();
 }
 
 function moveSelectedPieceAndGroup(_mouseX, _mouseY) {
@@ -934,7 +965,7 @@ function moveSelectedPieceAndGroup(_mouseX, _mouseY) {
     Math.abs(xDifference) < (pieceMatchDistanceDecimal * pieceSize) / 4 &&
     Math.abs(yDifference) < (pieceMatchDistanceDecimal * pieceSize) / 4
   ) {
-    return false;
+    return;
   }
 
   const selectedPieceGroupIndex = findIndexWithElement(
@@ -949,7 +980,7 @@ function moveSelectedPieceAndGroup(_mouseX, _mouseY) {
     pieces[_pieceIndex].y = pieces[_pieceIndex].y + yDifference;
   });
 
-  return true;
+  drawCanvas();
 }
 function moveSelectedPieceAndGroupWithDistance(_distanceX, _distanceY) {
   // Drag selected piece and its matched pieces
@@ -979,6 +1010,8 @@ function startCreateMark(_mouseX, _mouseY) {
   markStartY = _mouseY;
   markEndX = _mouseX;
   markEndY = _mouseY;
+
+  drawMark();
 }
 
 function setMarking(_mouseX, _mouseY) {
@@ -1035,6 +1068,8 @@ function setMarking(_mouseX, _mouseY) {
   if (markStartX !== null) {
     markMade = true;
   }
+
+  drawMark();
 }
 
 function onClickMark(_mouseX, _mouseY) {
@@ -1048,6 +1083,8 @@ function onClickMark(_mouseX, _mouseY) {
       movePieceToLast(_pieceId);
     });
   });
+
+  drawMark();
 }
 
 function removeMark() {
@@ -1058,6 +1095,8 @@ function removeMark() {
   markEndX = null;
   markEndY = null;
   markedGroups.length = 0;
+
+  drawMark();
 }
 //#endregion
 
@@ -1222,21 +1261,29 @@ function zoomChange() {
   const oldSceneWidth = sceneWidth;
   const oldSceneHeight = sceneHeight;
 
-  sceneWidth = Math.round(canvas.width * zoomLevel);
-  sceneHeight = Math.round(canvas.height * zoomLevel);
+  sceneWidth = Math.round(mainCanvas.width * zoomLevel);
+  sceneHeight = Math.round(mainCanvas.height * zoomLevel);
 
   const sceneWidthDelta = sceneWidth - oldSceneWidth;
   const sceneHeightDelta = sceneHeight - oldSceneHeight;
 
   viewOffsetX +=
-    ((prevMouseX - canvas.getBoundingClientRect().left) / canvas.width) *
+    ((prevMouseX - mainCanvas.getBoundingClientRect().left) /
+      mainCanvas.width) *
     sceneWidthDelta;
   viewOffsetY +=
-    ((prevMouseY - canvas.getBoundingClientRect().top) / canvas.height) *
+    ((prevMouseY - mainCanvas.getBoundingClientRect().top) /
+      mainCanvas.height) *
     sceneHeightDelta;
 
-  viewOffsetX = Math.max(0, Math.min(sceneWidth - canvas.width, viewOffsetX));
-  viewOffsetY = Math.max(0, Math.min(sceneHeight - canvas.height, viewOffsetY));
+  viewOffsetX = Math.max(
+    0,
+    Math.min(sceneWidth - mainCanvas.width, viewOffsetX)
+  );
+  viewOffsetY = Math.max(
+    0,
+    Math.min(sceneHeight - mainCanvas.height, viewOffsetY)
+  );
 
   // Make puzzle contain as much space as it can leaving the padding and
   // without stretching the pieces
@@ -1268,6 +1315,7 @@ function zoomChange() {
   }
 
   drawCanvas();
+  drawMark();
 
   // Set UI
   zoomInput.querySelector("span").textContent =
@@ -1279,13 +1327,15 @@ function zoomChange() {
 function setPanViewLock(_event) {
   panningViewLocked = _event.target.checked;
 
-  drawCanvas();
+  drawPanView();
 }
 function startPanningView(_clientX, _clientY) {
   panningView = true;
 
   prevMouseX = _clientX;
   prevMouseY = _clientY;
+
+  drawPanView();
 }
 function panView(_clientX, _clientY) {
   panningView = true;
@@ -1294,11 +1344,26 @@ function panView(_clientX, _clientY) {
   viewOffsetX -= _clientX - prevMouseX;
   viewOffsetY -= _clientY - prevMouseY;
 
-  viewOffsetX = Math.max(0, Math.min(sceneWidth - canvas.width, viewOffsetX));
-  viewOffsetY = Math.max(0, Math.min(sceneHeight - canvas.height, viewOffsetY));
+  viewOffsetX = Math.max(
+    0,
+    Math.min(sceneWidth - mainCanvas.width, viewOffsetX)
+  );
+  viewOffsetY = Math.max(
+    0,
+    Math.min(sceneHeight - mainCanvas.height, viewOffsetY)
+  );
+
+  drawPanView();
+  drawCanvas();
+  drawMark();
 }
 function stopPanningView() {
+  if (panningView === false) {
+    return;
+  }
   panningView = false;
+
+  drawPanView();
 }
 //#endregion
 
@@ -1318,7 +1383,7 @@ function toggleShowImage(_event) {
 function setDebug(_event) {
   showDebug = _event.target.checked;
 
-  drawCanvas();
+  drawDebug();
 }
 //#endregion
 

@@ -265,10 +265,16 @@ main > .wrapper {
   font-weight: bold;
 }
 
-#puzzleCanvas {
+.puzzle-canvas {
   position: absolute;
   display: block;
   box-shadow: 0 0 0 1px var(--green);
+
+  pointer-events: none;
+}
+
+#main-canvas {
+  pointer-events: all;
 }
 
 #image {
