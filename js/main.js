@@ -237,20 +237,6 @@ function drawMainCanvas() {
       tabSize
     );
 
-    if (selectedPiece && piece.id == selectedPiece.id) {
-      // Add shadow behind selected piece
-      mainCtx.fillStyle = "rgba(0, 0, 0, 0.4)";
-
-      // Apply the scale transformation to the context
-      mainCtx.translate(pieceSize / 20, pieceSize / 20);
-
-      // Fill scaled path with shadow color
-      mainCtx.fill(piecePath);
-
-      // Reset the transformation to avoid affecting future drawings
-      mainCtx.setTransform(1, 0, 0, 1, 0, 0);
-    }
-
     mainCtx.clip(piecePath);
     mainCtx.drawImage(
       image,
