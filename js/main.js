@@ -296,8 +296,12 @@ function drawSelectedPieces() {
   }
 
   piecesToDraw.forEach((piece) => {
-    // Draw only the corresponding part of the image for each puzzle piece
+    if (piece == null) {
+      console.warn("Can't draw piece that is undefined or null");
+      return;
+    }
 
+    // Draw only the corresponding part of the image for each puzzle piece
     const pieceCorrectX = piece.correctCol * pieceSize;
     const pieceCorrectY = piece.correctRow * pieceSize;
 
@@ -842,6 +846,11 @@ function generatePuzzle(_event) {
 }
 
 function resetPuzzle() {
+  pieces.splice(0, pieces.length);
+  piecesMatched.splice(0, piecesMatched.length);
+  markedGroups.splice(0, markedGroups.length);
+  selectedPiece = null;
+
   victoryMessage.classList.remove("active");
   isPuzzleDone = false;
   zoomLevel = 1;
@@ -911,6 +920,8 @@ function getNewPieceSize() {
 function createPieces() {
   pieces.splice(0, pieces.length);
   piecesMatched.splice(0, piecesMatched.length);
+  markedGroups.splice(0, markedGroups.length);
+  selectedPiece = null;
 
   for (let row = 0; row < puzzleRows; row++) {
     for (let col = 0; col < puzzleColumns; col++) {
