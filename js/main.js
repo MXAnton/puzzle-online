@@ -72,7 +72,6 @@ const imageInput = document.getElementById("image-input");
 
 let imageSrc = null;
 let image = new Image();
-let imageScale = 1;
 
 const imageShowContainer = document.getElementById("image");
 const imageShow = imageShowContainer.querySelector("img");
