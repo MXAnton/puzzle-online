@@ -215,16 +215,24 @@ function drawMainCanvas() {
       return;
     }
 
-    // Draw only the corresponding part of the image for each puzzle piece
-
-    const pieceCorrectX = piece.correctCol * pieceSize;
-    const pieceCorrectY = piece.correctRow * pieceSize;
-
-    const pieceImageX = pieceCorrectX * imageScaleMultiplierX;
-    const pieceImageY = pieceCorrectY * imageScaleMultiplierY;
-
     const pieceCanvasX = piece.x - viewOffsetX;
     const pieceCanvasY = piece.y - viewOffsetY;
+
+    if (
+      pieceCanvasX + pieceSize + tabSize < 0 ||
+      pieceCanvasX - tabSize > mainCanvas.width ||
+      pieceCanvasY + pieceSize + tabSize < 0 ||
+      pieceCanvasY - tabSize > mainCanvas.height
+    ) {
+      // Piece outside of canvas, no need to draw
+      return;
+    }
+
+    // Draw only the corresponding part of the image for each puzzle piece
+    const pieceCorrectX = piece.correctCol * pieceSize;
+    const pieceCorrectY = piece.correctRow * pieceSize;
+    const pieceImageX = pieceCorrectX * imageScaleMultiplierX;
+    const pieceImageY = pieceCorrectY * imageScaleMultiplierY;
 
     mainCtx.save();
 
@@ -301,15 +309,24 @@ function drawSelectedPieces() {
       return;
     }
 
+    const pieceCanvasX = piece.x - viewOffsetX;
+    const pieceCanvasY = piece.y - viewOffsetY;
+
+    if (
+      pieceCanvasX + pieceSize + tabSize < 0 ||
+      pieceCanvasX - tabSize > selectedPiecesCanvas.width ||
+      pieceCanvasY + pieceSize + tabSize < 0 ||
+      pieceCanvasY - tabSize > selectedPiecesCanvas.height
+    ) {
+      // Piece outside of canvas, no need to draw
+      return;
+    }
+
     // Draw only the corresponding part of the image for each puzzle piece
     const pieceCorrectX = piece.correctCol * pieceSize;
     const pieceCorrectY = piece.correctRow * pieceSize;
-
     const pieceImageX = pieceCorrectX * imageScaleMultiplierX;
     const pieceImageY = pieceCorrectY * imageScaleMultiplierY;
-
-    const pieceCanvasX = piece.x - viewOffsetX;
-    const pieceCanvasY = piece.y - viewOffsetY;
 
     selectedPiecesCtx.save();
 
