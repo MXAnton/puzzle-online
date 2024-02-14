@@ -1443,14 +1443,14 @@ function zoomChange() {
   const newScaleMultiplierY = sceneHeight / oldSceneHeight;
 
   pieces.forEach((piece) => {
-    let newX = piece.x * newScaleMultiplierX;
-    let newY = piece.y * newScaleMultiplierY;
+    // let newX = piece.x * newScaleMultiplierX;
+    // let newY = piece.y * newScaleMultiplierY;
 
-    newX = Math.min(Math.max(newX, 0), sceneWidth - pieceSize);
-    newY = Math.min(Math.max(newY, 0), sceneHeight - pieceSize);
+    // newX = Math.min(Math.max(newX, 0), sceneWidth - pieceSize);
+    // newY = Math.min(Math.max(newY, 0), sceneHeight - pieceSize);
 
-    piece.x = newX;
-    piece.y = newY;
+    piece.x = piece.x * newScaleMultiplierX;
+    piece.y = piece.y * newScaleMultiplierY;
   });
 
   // Update mark
