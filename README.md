@@ -51,9 +51,9 @@ The hardest thing so far I think have been to draw things in the correct place a
 
 ## ✨ Improvement/Todo:
 - [x] https://github.com/MXAnton/puzzle-online/issues/1
-- [ ] https://github.com/MXAnton/puzzle-online/issues/2
+- [x] https://github.com/MXAnton/puzzle-online/issues/2
 - [x] Choose amount of total pieces instead of x and y, then generate the puzzle in the aspect-ratio of the image.
-- [ ] No need to draw pieces that are outside of canvas.
+- [x] No need to draw pieces that are outside of canvas.
 - [ ] Update GUI to display controls and timer nicer. 
 - [ ] Change background and border of puzzle board/canvas to make it look nicer and easier to see difference between canvas and outside of canvas.
 - [ ] Add user accounts and the ability to save generated puzzle on account.
