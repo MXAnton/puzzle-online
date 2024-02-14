@@ -35,6 +35,7 @@ Everything is controlled by the mouse and/or the navigation bar:
  - `Pan lock` by clicking the `PAN🔒` button. 
  - `Toggle image` by clicking the `🖼🙈` button. 
  - `Pause/Play` by clicking the `▶`/`| |` button. 
+ - `Pause/Play music` by clicking the `♬🔊`/`♬🔈` button. 
 
 ## 💭 Process:
 I started by searching the internet for others that have made similar projects mainly to see how they had solved rendering the puzzle. My goal was to make it work using only pure HTML, CSS and JavaScript. Finally I came to the conclusion that a canvas element probably was the best way to go, because it gives me the freedom of rendering the puzzle the way I want to. Now I just had to figure out how to actually render stuff on the canvas element :D
