@@ -1,5 +1,6 @@
 :root {
   --blue: #264653;
+  --blue--dark: #1b3d49;
   --green: #2a9d8f;
   --green--dark: #20776d;
   --yellow: #e9c46a;
@@ -268,13 +269,26 @@ main > .wrapper {
 .puzzle-canvas {
   position: absolute;
   display: block;
-  box-shadow: 0 0 0 1px var(--green);
 
   pointer-events: none;
 }
 
 #main-canvas {
   pointer-events: all;
+  box-shadow: 0 0 0 1px var(--green);
+}
+
+.bg--blue {
+  background: radial-gradient(var(--blue), var(--blue--dark));
+}
+.bg--black {
+  background: radial-gradient(rgb(4, 4, 4), rgb(37, 37, 37));
+}
+.bg--white {
+  background: radial-gradient(rgb(242, 242, 242), rgb(223, 223, 223));
+}
+.bg--grid--black-white {
+  background: repeating-conic-gradient(#2e2e2e 0% 25%, #b9b9b9 0% 50%) 50%/ 3vw 3vw;
 }
 
 #image {

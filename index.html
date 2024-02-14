@@ -159,12 +159,24 @@
             onchange="setMusicOff(event)"
           />
         </div>
+
+        <select
+          name="background-input"
+          id="background-input"
+          class="btn--primary"
+          onchange="onBackgroundInput(event)"
+        >
+          <option value="blue" selected>Blue</option>
+          <option value="black">Black</option>
+          <option value="white">White</option>
+          <option value="grid--black-white">Grid</option>
+        </select>
       </nav>
 
       <div class="wrapper">
         <canvas
           id="main-canvas"
-          class="puzzle-canvas"
+          class="puzzle-canvas bg--blue"
           width="400"
           height="400"
         ></canvas>

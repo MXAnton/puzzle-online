@@ -619,6 +619,22 @@ function getNewPiecePath(_pieceTabs, _pieceCanvasX, _pieceCanvasY, _tabSize) {
 }
 //#endregion
 
+//#region BACKGROUND
+function onBackgroundInput(_event) {
+  // Create a regular expression to match classes that begin with 'bg--'
+  const regex = /^bg--/;
+
+  // Iterate over the classes and remove those that match the pattern
+  mainCanvas.classList.forEach((_className) => {
+    if (regex.test(_className)) {
+      mainCanvas.classList.remove(_className);
+    }
+  });
+
+  mainCanvas.classList.add("bg--" + _event.target.value);
+}
+//#endregion
+
 //#region MOUSE INPUTS
 function handleMouseDown(_event) {
   if (timerIntervalId == null) {
