@@ -1398,40 +1398,39 @@ function zoomChange() {
   const sceneWidthDelta = sceneWidth - oldSceneWidth;
   const sceneHeightDelta = sceneHeight - oldSceneHeight;
 
-  viewOffsetX +=
+  const newViewOffsetX =
+    viewOffsetX +
     ((prevMouseX - mainCanvas.getBoundingClientRect().left) /
       mainCanvas.width) *
-    sceneWidthDelta;
-  viewOffsetY +=
+      sceneWidthDelta;
+  const newViewOffsetY =
+    viewOffsetY +
     ((prevMouseY - mainCanvas.getBoundingClientRect().top) /
       mainCanvas.height) *
-    sceneHeightDelta;
+      sceneHeightDelta;
 
   viewOffsetX = Math.max(
     0,
-    Math.min(sceneWidth - mainCanvas.width, viewOffsetX)
+    Math.min(sceneWidth - mainCanvas.width, newViewOffsetX)
   );
   viewOffsetY = Math.max(
     0,
-    Math.min(sceneHeight - mainCanvas.height, viewOffsetY)
+    Math.min(sceneHeight - mainCanvas.height, newViewOffsetY)
   );
 
   // Make puzzle contain as much space as it can leaving the padding and
   // without stretching the pieces
-  const oldPieceSize = pieceSize;
   pieceSize = getNewPieceSize();
 
-  const newScaleMultiplier = pieceSize / oldPieceSize;
+  const newScaleMultiplierX = sceneWidth / oldSceneWidth;
+  const newScaleMultiplierY = sceneHeight / oldSceneHeight;
 
   pieces.forEach((piece) => {
-    let newX = piece.x * newScaleMultiplier;
-    let newY = piece.y * newScaleMultiplier;
+    let newX = piece.x * newScaleMultiplierX;
+    let newY = piece.y * newScaleMultiplierY;
 
     newX = Math.min(Math.max(newX, 0), sceneWidth - pieceSize);
     newY = Math.min(Math.max(newY, 0), sceneHeight - pieceSize);
-
-    newX = newX;
-    newY = newY;
 
     piece.x = newX;
     piece.y = newY;
@@ -1439,15 +1438,16 @@ function zoomChange() {
 
   // Update mark
   if (markStartX != null) {
-    markStartX *= newScaleMultiplier;
-    markStartY *= newScaleMultiplier;
-    markEndX *= newScaleMultiplier;
-    markEndY *= newScaleMultiplier;
+    markStartX *= newScaleMultiplierX;
+    markStartY *= newScaleMultiplierY;
+    markEndX *= newScaleMultiplierX;
+    markEndY *= newScaleMultiplierY;
   }
 
   drawMainCanvas();
   drawSelectedPieces();
   drawMark();
+  drawDebug();
 
   // Set UI
   zoomInput.querySelector("span").textContent =
