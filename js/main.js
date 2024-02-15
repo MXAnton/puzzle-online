@@ -1371,6 +1371,10 @@ function completedPuzzle() {
 
   stopTimer();
 
+  // Zoom out
+  zoomLevel = 1;
+  zoom(0);
+
   victoryMessage.classList.add("active");
   victoryTime.innerText = getFormatedTime(hours, minutes, seconds);
 
