@@ -42,6 +42,8 @@ const puzzleSizeInput = document.getElementById("puzzle-size-input");
 
 let puzzleColumns = 0;
 let puzzleRows = 0;
+
+const piecesText = document.getElementById("pieces");
 //#endregion
 
 //#region VARS - GENERATE PUZZLE
@@ -940,6 +942,8 @@ function calculatePuzzleSize(_aspectRatio) {
   // Set show image image aspect ratio to puzzle aspect ratio
   imageShowContainer.querySelector("img").style.aspectRatio =
     puzzleColumns / puzzleRows;
+
+  piecesText.innerText = puzzleColumns * puzzleRows + " pieces";
 }
 //#endregion
 

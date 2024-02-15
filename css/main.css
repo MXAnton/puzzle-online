@@ -273,9 +273,16 @@ main {
 }
 
 /*#region TIMER */
-.timer {
+.status {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  gap: 1em;
+
   font-size: 1.5rem;
-  padding: .5em;
+  padding: 0.5em;
+}
+.status > h2:first-child  {
+  justify-self: flex-end;
 }
 /*#endregion TIMER */
 
@@ -404,5 +411,12 @@ main {
 }
 .bg--grid--black-white {
   background: repeating-conic-gradient(#2e2e2e 0% 25%, #b9b9b9 0% 50%) 50%/ 3vw 3vw;
+}
+
+.divider--fill {
+  width: 100%;
+  height: 100%;
+
+  background-color: var(--color--text);
 }
 /*#endregion GENERAL */
