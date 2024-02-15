@@ -1405,7 +1405,7 @@ controlsModal.addEventListener("click", (_event) => {
 
 //#region ZOOM
 function startAutoZoom(_zoomValue) {
-  if (timerIntervalId == null) {
+  if (timerIntervalId == null && isPuzzleDone !== true) {
     return;
   }
 
