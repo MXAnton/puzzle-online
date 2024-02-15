@@ -34,6 +34,9 @@ body {
 }
 * {
   letter-spacing: 0.02em;
+
+  padding: 0;
+  margin: 0;
 }
 
 button:hover,
@@ -46,6 +49,7 @@ label {
   cursor: pointer;
 }
 
+/*#region BUTTONS */
 .btn--primary,
 .btn--secondary {
   font-size: 1rem;
@@ -68,7 +72,9 @@ label {
 .btn--secondary:hover {
   border-color: var(--yellow);
 }
+/*#endregion BUTTONS */
 
+/*#region CHECKBOXES */
 .checkbox--primary input[type="checkbox"] {
   display: none;
 }
@@ -114,8 +120,10 @@ label {
 .checkbox--primary label img {
   height: 1.1em;
 }
+/*#endregion CHECKBOXES */
 
-#zoom-input {
+/*#region ZOOM INPUT */
+.zoom-input {
   font-size: 1rem;
 
   padding: 0 0.5em;
@@ -125,7 +133,7 @@ label {
   align-items: center;
   gap: 0.4em;
 }
-#zoom-input button {
+.zoom-input button {
   font-size: 1em;
   line-height: 100%;
 
@@ -144,26 +152,50 @@ label {
 
   transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
 }
-#zoom-input button:hover {
+.zoom-input button:hover {
   background-color: var(--green--dark);
 }
-#zoom-input button:active {
+.zoom-input button:active {
   transform: translateY(5%);
 }
-#zoom-input span {
+.zoom-input span {
   font-size: 1em;
   width: 2.6em;
   text-align: center;
 }
+/*#endregion ZOOM INPUT */
 
-#generate-modal[open] {
+/*#region MUSIC INPUT */
+/* on */
+.music-input__volume--off {
+  display: none;
+}
+.music-input__volume--on {
+  display: inline-block;
+}
+/* off */
+.off .music-input__volume--off {
+  display: inline-block;
+}
+.off .music-input__volume--on {
+  display: none;
+}
+/*#endregion MUSIC INPUT */
+
+/*#region MODALS */
+.modal--primary[open] {
   position: relative;
+
+  margin: auto;
+
+  max-width: 25rem;
 
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 1.5rem;
 
-  padding: 2rem 2rem 3rem;
+  padding: 2.5rem 2rem 4rem;
   border-radius: 0.6rem;
 
   color: var(--black);
@@ -171,28 +203,41 @@ label {
   --color--text: var(--white);
   --color--background: var(--black);
 }
-::backdrop {
+.modal--primary::backdrop {
   background-color: black;
   opacity: 0.75;
   cursor: pointer;
 }
 
-#generate-modal h1 {
-  margin-top: 0;
-  margin-bottom: 0.2em;
+.modal--primary h2 {
+  font-size: 2.5rem;
 }
 
-#generate-modal form {
+.modal--primary form,
+.modal--primary ul {
+  width: 100%;
+
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
 }
-#generate-modal form label {
+.modal--primary ul {
+  gap: 1.2rem;
+
+  padding-left: 1rem;
+  box-sizing: border-box;
+}
+.modal--primary form label:not(:first-of-type) {
   margin-top: 0.8rem;
 }
+.modal--primary form .btn--secondary {
+  margin-top: 1.8em;
+}
 
-#generate-modal form input[type="submit"] {
-  margin-top: 1.4rem;
+.modal--primary .btn--secondary {
+  width: 100%;
+  font-size: 1.2rem;
+  margin-top: 0.8em;
   padding: 0.8em 1.2em;
   --color--background: var(--green);
 }
@@ -213,6 +258,7 @@ label {
   width: 2em;
   aspect-ratio: 1/1;
 }
+/*#endregion MODALS */
 
 main {
   width: 100%;
@@ -226,7 +272,8 @@ main {
   justify-content: center;
 }
 
-main > nav {
+/*#region PUZZLE NAV */
+.puzzle-nav {
   display: flex;
   gap: 0.5rem;
   align-items: end;
@@ -236,34 +283,22 @@ main > nav {
   --color--background: var(--green);
   --color--text: var(--white);
 }
-main > nav > * {
+.puzzle-nav > * {
   height: 2.325rem;
 }
-main > nav .btn--primary,
-main > nav .checkbox--primary label {
+.puzzle-nav .btn--primary,
+.puzzle-nav .checkbox--primary label {
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
 }
+/*#endregion PUZZLE NAV */
 
-main > .wrapper {
+/*#region PUZZLE SECTION */
+.puzzle-wrapper {
   position: relative;
 
   width: calc(min(100%, (100svh - 10rem) * (16/9)));
   aspect-ratio: 16/9;
-}
-
-#info {
-  width: 100%;
-  font-size: 0.8rem;
-  line-height: 0.5em;
-
-  margin-bottom: 0.5em;
-
-  display: flex;
-  gap: 2rem;
-}
-#timer {
-  font-weight: bold;
 }
 
 .puzzle-canvas {
@@ -272,26 +307,12 @@ main > .wrapper {
 
   pointer-events: none;
 }
-
-#main-canvas {
+.main-canvas {
   pointer-events: all;
   box-shadow: 0 0 0 1px var(--green);
 }
 
-.bg--blue {
-  background: radial-gradient(var(--blue), var(--blue--dark));
-}
-.bg--black {
-  background: radial-gradient(rgb(4, 4, 4), rgb(37, 37, 37));
-}
-.bg--white {
-  background: radial-gradient(rgb(242, 242, 242), rgb(223, 223, 223));
-}
-.bg--grid--black-white {
-  background: repeating-conic-gradient(#2e2e2e 0% 25%, #b9b9b9 0% 50%) 50%/ 3vw 3vw;
-}
-
-#image {
+.puzzle__image {
   position: absolute;
   top: 0;
   left: 0;
@@ -307,7 +328,7 @@ main > .wrapper {
   z-index: 2;
   pointer-events: none;
 }
-#image img {
+.puzzle__image img {
   max-width: 100%;
   max-height: 100%;
   object-fit: fill;
@@ -319,12 +340,12 @@ main > .wrapper {
   box-shadow: 0 0 1rem var(--green);
 }
 
-#victory-message,
-#paused-message {
+.victory-message,
+.paused-message {
   display: none;
 }
-#victory-message.active,
-#paused-message.active {
+.victory-message.active,
+.paused-message.active {
   display: block;
 
   position: absolute;
@@ -346,34 +367,35 @@ main > .wrapper {
 
   background-color: rgba(0, 0, 0, 0.7);
 }
-#victory-message h2,
-#paused-message h2 {
+.victory-message h2,
+.paused-message h2 {
   font-size: 2em;
   font-weight: 600;
 
   margin: 0 0 0.4em;
 }
-#victory-message p {
+.victory-message p {
   font-size: 1em;
 
   margin: 0;
 }
-#victory-message #victory-time {
+.victory-message__time {
   font-size: 2.5em;
   font-weight: 900;
 }
+/*#endregion PUZZLE SECTION */
 
-/* on */
-#music-input__wrapper .music-input__volume--off {
-  display: none;
+/*#region GENERAL */
+.bg--blue {
+  background: radial-gradient(var(--blue), var(--blue--dark));
 }
-#music-input__wrapper .music-input__volume--on {
-  display: inline-block;
+.bg--black {
+  background: radial-gradient(rgb(4, 4, 4), rgb(37, 37, 37));
 }
-/* off */
-#music-input__wrapper.off .music-input__volume--off {
-  display: inline-block;
+.bg--white {
+  background: radial-gradient(rgb(242, 242, 242), rgb(223, 223, 223));
 }
-#music-input__wrapper.off .music-input__volume--on {
-  display: none;
+.bg--grid--black-white {
+  background: repeating-conic-gradient(#2e2e2e 0% 25%, #b9b9b9 0% 50%) 50%/ 3vw 3vw;
 }
+/*#endregion GENERAL */

@@ -26,10 +26,10 @@
       Your browser does not support the audio element.
     </audio>
 
-    <dialog id="generate-modal">
+    <dialog class="modal--primary" id="generate-modal">
       <button class="modal__close-btn" onclick="closeGenerateModal()">X</button>
 
-      <h1>Generate Puzzle</h1>
+      <h2>Generate Puzzle</h2>
 
       <form onsubmit="generatePuzzle(event)">
         <label for="image-input">Puzzle image:</label>
@@ -63,21 +63,43 @@
       </form>
     </dialog>
 
-    <main>
-      <section id="info">
-        <div>
-          <p>Drag pieces: left mouse button</p>
-          <p>Select multiple pieces: right mouse button</p>
-          <p>Zoom: mouse scroll</p>
-          <p>Pan: press scroll button or drag on empty board</p>
-        </div>
+    <dialog class="modal--primary" id="controls-modal">
+      <button class="modal__close-btn" onclick="closeControlsModal()">X</button>
 
+      <h2>Controls</h2>
+
+      <ul>
+        <li>
+          <h3>Grab and move pieces:</h3>
+          <p>by pressing left mouse button.</p>
+        </li>
+        <li>
+          <h3>Mark multiple pieces:</h3>
+          <p>with right mouse button.</p>
+        </li>
+        <li>
+          <h3>Zoom:</h3>
+          <p>with mouse scroll.</p>
+        </li>
+        <li>
+          <h3>Pan/move around the puzzle:</h3>
+          <p>by pressing scrollbutton or grabbing empty board.</p>
+        </li>
+      </ul>
+
+      <button class="btn--secondary" onclick="closeControlsModal()">
+        Close
+      </button>
+    </dialog>
+
+    <main>
+      <section class="timer">
         <div>
           <p>Timer: <span id="timer">00:00:00</span></p>
         </div>
       </section>
 
-      <nav>
+      <nav class="puzzle-nav">
         <div class="checkbox--primary">
           <label id="pause-input__label" for="pause-input">▶</label
           ><input
@@ -91,6 +113,8 @@
         <button class="btn--primary" onclick="openGenerateModal()">
           Generate
         </button>
+
+        <button class="btn--primary" onclick="openControlsModal()">🎮</button>
 
         <div class="checkbox--primary">
           <label for="show-debug">📝</label
@@ -123,7 +147,7 @@
           />
         </div>
 
-        <div id="zoom-input" class="btn--primary">
+        <div id="zoom-input" class="btn--primary zoom-input">
           <button
             onmousedown="startAutoZoom(-0.1)"
             onmouseup="stopAutoZoom()"
@@ -173,10 +197,10 @@
         </select>
       </nav>
 
-      <div class="wrapper">
+      <section id="puzzle-wrapper" class="puzzle-wrapper">
         <canvas
           id="main-canvas"
-          class="puzzle-canvas bg--blue"
+          class="puzzle-canvas main-canvas bg--blue"
           width="400"
           height="400"
         ></canvas>
@@ -205,20 +229,20 @@
           height="400"
         ></canvas>
 
-        <div id="image" style="display: none">
+        <div id="image" class="puzzle__image" style="display: none">
           <img src="#" alt="Puzzle image" />
         </div>
 
-        <div id="paused-message">
+        <div id="paused-message" class="paused-message">
           <h2>Game paused</h2>
         </div>
 
-        <div id="victory-message">
+        <div id="victory-message" class="victory-message">
           <h2>Congratulations!</h2>
           <p>You completed the puzzle with a time of:</p>
-          <p id="victory-time">00:00:00</p>
+          <p id="victory-time" class="victory-message__time">00:00:00</p>
         </div>
-      </div>
+      </section>
     </main>
 
     <script src="js/main.js"></script>

@@ -21,9 +21,7 @@ const markCtx = markCanvas.getContext("2d");
 const panViewCtx = panViewCanvas.getContext("2d");
 const debugCtx = debugCanvas.getContext("2d");
 
-const mainWrapperElement = document
-  .querySelector("main")
-  .querySelector(".wrapper");
+const puzzleWrapper = document.getElementById("puzzle-wrapper");
 
 let viewOffsetX = 0; // 0-x
 let viewOffsetY = 0; // 0-y
@@ -48,6 +46,10 @@ let puzzleRows = 0;
 
 //#region VARS - GENERATE PUZZLE
 const generateModal = document.getElementById("generate-modal");
+//#endregion
+
+//#region VARS - CONTROLS INFO
+const controlsModal = document.getElementById("controls-modal");
 //#endregion
 
 //#region VARS - ZOOM
@@ -158,16 +160,16 @@ debugCanvas.addEventListener("contextmenu", (_event) =>
 );
 
 function setCanvasSize() {
-  mainCanvas.width = mainWrapperElement.clientWidth;
-  mainCanvas.height = mainWrapperElement.clientHeight;
-  selectedPiecesCanvas.width = mainWrapperElement.clientWidth;
-  selectedPiecesCanvas.height = mainWrapperElement.clientHeight;
-  markCanvas.width = mainWrapperElement.clientWidth;
-  markCanvas.height = mainWrapperElement.clientHeight;
-  panViewCanvas.width = mainWrapperElement.clientWidth;
-  panViewCanvas.height = mainWrapperElement.clientHeight;
-  debugCanvas.width = mainWrapperElement.clientWidth;
-  debugCanvas.height = mainWrapperElement.clientHeight;
+  mainCanvas.width = puzzleWrapper.clientWidth;
+  mainCanvas.height = puzzleWrapper.clientHeight;
+  selectedPiecesCanvas.width = puzzleWrapper.clientWidth;
+  selectedPiecesCanvas.height = puzzleWrapper.clientHeight;
+  markCanvas.width = puzzleWrapper.clientWidth;
+  markCanvas.height = puzzleWrapper.clientHeight;
+  panViewCanvas.width = puzzleWrapper.clientWidth;
+  panViewCanvas.height = puzzleWrapper.clientHeight;
+  debugCanvas.width = puzzleWrapper.clientWidth;
+  debugCanvas.height = puzzleWrapper.clientHeight;
 
   debugCtx.font = "16px Arial";
 
@@ -1382,6 +1384,31 @@ function completedPuzzle() {
 
   playSuccessSound();
 }
+//#endregion
+
+//#region CONTROLS INFO
+function openControlsModal() {
+  controlsModal.showModal();
+}
+function closeControlsModal() {
+  controlsModal.close();
+}
+controlsModal.addEventListener("click", (_event) => {
+  if (_event.target.nodeName !== "DIALOG") {
+    return;
+  }
+
+  const rect = _event.target.getBoundingClientRect();
+
+  if (
+    rect.left > _event.clientX ||
+    rect.right < _event.clientX ||
+    rect.top > _event.clientY ||
+    rect.bottom < _event.clientY
+  ) {
+    closeControlsModal();
+  }
+});
 //#endregion
 
 //#region ZOOM
