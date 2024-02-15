@@ -14,15 +14,22 @@
 
   --color--text: var(--white);
   --color--background: var(--color--primary);
+
+  font-size: 16px;
+}
+@media (width < 42rem), (max-height: 25rem) {
+  :root {
+    font-size: 10px;
+  }
 }
 
 body {
-  font-size: 16px;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   color: var(--color--text);
   background-color: var(--color--background);
 
   padding: 1rem;
+  box-sizing: border-box;
   margin: 0;
 
   min-height: 100svh;
@@ -30,8 +37,8 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
 }
+
 * {
   letter-spacing: 0.02em;
 
@@ -276,19 +283,30 @@ main {
   justify-content: center;
 }
 
-/*#region TIMER */
+/*#region PUZZLE STATUS */
 .status {
   display: grid;
   grid-template-columns: 1fr 1px 1fr;
-  gap: 1em;
+  gap: 0.2em 1em;
 
   font-size: 1.5rem;
-  padding: 0.5em;
+  margin-bottom: 0.7em;
 }
 .status > h2:first-child {
   justify-self: flex-end;
 }
-/*#endregion TIMER */
+@media (width < 45rem) {
+  .status {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1px 1fr;
+
+    text-align: center;
+  }
+  .status > h2:first-child {
+    justify-self: center;
+  }
+}
+/*#endregion PUZZLE STATUS */
 
 /*#region PUZZLE NAV */
 .puzzle-nav {
@@ -325,6 +343,10 @@ main {
   z-index: 4;
 
   --color--background: var(--green);
+}
+#toggle-menu__label svg {
+  height: 1em;
+  width: 1em;
 }
 .puzzle-nav__menu > ul {
   position: absolute;
