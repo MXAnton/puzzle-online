@@ -1,4 +1,4 @@
-![Screenshot of the website.](/assets/images/puzzle2.png)
+![Screenshot of the website.](/assets/images/sc_puzzle_settings.png)
 
 # 🧩 Puzzle Online
 Upload an image and create your own puzzle in your desired size. Then put together the puzzle while being timed.
@@ -55,8 +55,8 @@ The hardest thing so far I think have been to draw things in the correct place a
 - [x] https://github.com/MXAnton/puzzle-online/issues/2
 - [x] Choose amount of total pieces instead of x and y, then generate the puzzle in the aspect-ratio of the image.
 - [x] No need to draw pieces that are outside of canvas.
-- [ ] Update GUI to display controls and timer nicer. 
-- [ ] Change background and border of puzzle board/canvas to make it look nicer and easier to see difference between canvas and outside of canvas.
+- [x] Update GUI to display controls and timer nicer. 
+- [x] Change background and border of puzzle board/canvas to make it look nicer and easier to see difference between canvas and outside of canvas.
 - [ ] Add user accounts and the ability to save generated puzzle on account.
 - [ ] Add ability to save progress on puzzle on account.
 - [ ] Store user puzzle time records and display it.
@@ -64,10 +64,11 @@ The hardest thing so far I think have been to draw things in the correct place a
 - [ ] Add highscore list to puzzles.
 
 ## 📸 Showcase:
-![Screenshot of the website.](/assets/images/screenshot.jpg)
-![Screenshot of the website.](/assets/images/puzzle-pan-lock.png)
-![Screenshot of the website.](/assets/images/puzzle-show-image.png)
-![Screenshot of the website.](/assets/images/puzzle-completed.png)
+![Screenshot of the website.](/assets/images/sc_puzzle_show-image.png)
+![Screenshot of the website.](/assets/images/sc_puzzle_settings.png)
+![Screenshot of the website.](/assets/images/sc_puzzle_paused.png)
+![Screenshot of the website.](/assets/images/sc_puzzle_completed.png)
+![Screenshot of the website.](/assets/images/sc_puzzle_complete-fireworks.png)
 
 ## 🚦 Running the Project:
 To run the project just open the `index.html` file in your web browser, or go to [puzzle-online.netlify.app](https://puzzle-online.netlify.app/).
