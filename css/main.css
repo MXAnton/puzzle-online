@@ -481,13 +481,16 @@ main {
 
 /*#region GENERAL */
 .bg--blue {
-  background: radial-gradient(var(--blue), var(--blue--dark));
+  background: var(--blue--dark);
 }
 .bg--black {
-  background: radial-gradient(rgb(4, 4, 4), rgb(37, 37, 37));
+  background: #141414;
+}
+.bg--grey {
+  background: #5a5a5a;
 }
 .bg--white {
-  background: radial-gradient(rgb(242, 242, 242), rgb(223, 223, 223));
+  background: #d8d8d8;
 }
 .bg--grid--black-white {
   background: repeating-conic-gradient(#2e2e2e 0% 25%, #b9b9b9 0% 50%) 50%/ 3vw 3vw;
