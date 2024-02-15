@@ -473,7 +473,7 @@ main {
 
   margin: 0;
 }
-.victory-message__time {
+.victory-message .victory-message__time {
   font-size: 2.5em;
   font-weight: 900;
 }
