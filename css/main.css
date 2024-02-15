@@ -214,6 +214,10 @@ label {
 .modal--primary h2 {
   font-size: 2.5rem;
 }
+.modal--primary h2,
+.modal--primary > p {
+  text-align: center;
+}
 
 .modal--primary form,
 .modal--primary ul {
