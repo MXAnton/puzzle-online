@@ -1595,7 +1595,9 @@ function setMusicOff(_event) {
   }
 
   musicInputWrapper.classList.remove("off");
-  playMusic();
+  if (isPuzzleDone === false && timerIntervalId != null) {
+    playMusic();
+  }
 }
 
 function playMusic() {
