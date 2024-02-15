@@ -677,7 +677,7 @@ function handleMouseDown(_event) {
       break;
   }
 
-  setCursor();
+  setCursor(_event.target);
 }
 
 function handleMouseMove(_event) {
@@ -685,7 +685,7 @@ function handleMouseMove(_event) {
     // Update previous mouse position
     prevMouseX = _event.clientX;
     prevMouseY = _event.clientY;
-    setCursor();
+    setCursor(_event.target);
 
     return;
   }
@@ -711,7 +711,7 @@ function handleMouseMove(_event) {
     panView(_event.clientX, _event.clientY);
   }
 
-  setCursor();
+  setCursor(_event.target);
 
   // Update previous mouse position
   prevMouseX = _event.clientX;
@@ -749,7 +749,7 @@ function handleMouseUp(_event) {
       break;
   }
 
-  setCursor();
+  setCursor(_event.target);
 }
 
 function handleMouseWheel(_event) {
@@ -771,36 +771,24 @@ document.addEventListener("mouseup", handleMouseUp);
 // Add event listener for mouse wheel (for zooming)
 mainCanvas.addEventListener("wheel", handleMouseWheel);
 
-function setCursor() {
+function setCursor(_target) {
   if (timerIntervalId == null) {
-    // Game paused
-    const mouseX = prevMouseX - mainCanvas.getBoundingClientRect().left;
-    const mouseY = prevMouseY - mainCanvas.getBoundingClientRect().top;
-
-    if (
-      mouseX >= 0 &&
-      mouseX <= mainCanvas.width &&
-      mouseY >= 0 &&
-      mouseY <= mainCanvas.height
-    ) {
-      document.body.style.cursor = "not-allowed";
-    } else {
-      document.body.style.cursor = "default";
-    }
-
-    return;
-  }
-
-  if (!markMade && markStartX != null) {
+    // Game paused or completed
+    document.body.style.cursor = "default";
+  } else if (!markMade && markStartX != null) {
     // Making mark
     document.body.style.cursor = "pointer";
   } else if (markDragged || selectedPiece) {
+    // Grabbing marked or selected pieces
     document.body.style.cursor = "grabbing";
   } else if (panningView || panningViewLocked) {
+    // Panning view
     document.body.style.cursor = "all-scroll";
-  } else if (hoveredPiece || markHovered) {
+  } else if ((hoveredPiece || markHovered) && _target == mainCanvas) {
+    // Hovering piece and/or mark
     document.body.style.cursor = "grab";
   } else {
+    // Nothing special
     document.body.style.cursor = "default";
   }
 }
@@ -1443,6 +1431,7 @@ function autoZoom(_zoomValue) {
 function stopAutoZoom() {
   clearInterval(zoomIntervalId);
 }
+
 function zoom(_zoomValue) {
   zoomLevel += _zoomValue;
 
@@ -1452,6 +1441,7 @@ function zoom(_zoomValue) {
 
   zoomChange();
 }
+
 function zoomChange() {
   const oldSceneWidth = sceneWidth;
   const oldSceneHeight = sceneHeight;
