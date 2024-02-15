@@ -272,6 +272,13 @@ main {
   justify-content: center;
 }
 
+/*#region TIMER */
+.timer {
+  font-size: 1.5rem;
+  padding: .5em;
+}
+/*#endregion TIMER */
+
 /*#region PUZZLE NAV */
 .puzzle-nav {
   display: flex;
