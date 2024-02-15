@@ -129,7 +129,7 @@ const pausedMessage = document.getElementById("paused-message");
 const victoryMessage = document.getElementById("victory-message");
 const victoryTime = document.getElementById("victory-time");
 
-let isPuzzleDone = false;
+let isPuzzleDone = null;
 //#endregion
 
 //#region VARS - GENERAL
@@ -1689,9 +1689,11 @@ function restartTimer() {
 }
 
 function setPause(_event) {
-  if (isPuzzleDone || piecesMatched.length == 0) {
+  if (isPuzzleDone == null || isPuzzleDone || piecesMatched.length == 0) {
     _event.target.checked = false;
     pausedMessage.classList.remove("active");
+
+    openGenerateModal();
     return;
   }
 
