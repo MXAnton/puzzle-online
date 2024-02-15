@@ -85,11 +85,13 @@ label {
 
   font-size: 1rem;
   font-weight: 700;
-  text-transform: uppercase;
   line-height: 1em;
 
   padding: 0.6em 1.2em;
   box-sizing: border-box;
+
+  display: flex;
+  gap: 0.4em;
 
   background-color: var(--color--background);
   color: var(--color--text);
@@ -281,13 +283,20 @@ main {
   font-size: 1.5rem;
   padding: 0.5em;
 }
-.status > h2:first-child  {
+.status > h2:first-child {
   justify-self: flex-end;
 }
 /*#endregion TIMER */
 
 /*#region PUZZLE NAV */
 .puzzle-nav {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+}
+
+.puzzle-nav__main {
   display: flex;
   gap: 0.5rem;
   align-items: end;
@@ -297,13 +306,76 @@ main {
   --color--background: var(--green);
   --color--text: var(--white);
 }
-.puzzle-nav > * {
+.puzzle-nav__main > * {
   height: 2.325rem;
 }
-.puzzle-nav .btn--primary,
-.puzzle-nav .checkbox--primary label {
+.puzzle-nav__main .btn--primary,
+.puzzle-nav__main .checkbox--primary label {
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
+}
+
+.puzzle-nav__menu {
+  position: relative;
+
+  font-size: 1rem;
+
+  z-index: 2;
+
+  --color--background: var(--green);
+}
+.puzzle-nav__menu > ul {
+  position: absolute;
+  top: 100%;
+  right: 0;
+
+  list-style: none;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.1em;
+
+  padding: 0.5em 1.5em 1em;
+
+  --color--background: var(--green--dark);
+  background-color: var(--color--background);
+
+  visibility: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0);
+  transform-origin: calc(100% - 0.5em) top;
+
+  transition: 0s opacity ease-in-out, 0s transform ease-in-out;
+}
+.puzzle-nav__menu:has(#toggle-menu:checked) > ul {
+  visibility: visible;
+  pointer-events: all;
+  opacity: 1;
+  transform: scale(1);
+
+  transition: 0.2s opacity ease-in-out, 0.2s transform ease-in-out;
+}
+
+.puzzle-nav__menu li > * {
+  width: 100%;
+}
+.puzzle-nav__menu li .btn--primary:not(select),
+.puzzle-nav__menu li .select--primary,
+.puzzle-nav__menu li .checkbox--primary label {
+  width: 100%;
+  text-transform: capitalize;
+  text-align: left;
+  justify-content: left;
+  align-items: start;
+
+  padding: 0.7em 0.2em;
+}
+.puzzle-nav__menu
+  li
+  .checkbox--primary:has(input[type="checkbox"]:checked)
+  label {
+  transform: translateY(0);
 }
 /*#endregion PUZZLE NAV */
 

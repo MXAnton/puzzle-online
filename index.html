@@ -99,103 +99,158 @@
         <h2 id="timer">Puzzle</h2>
       </section>
 
-      <nav class="puzzle-nav">
-        <div class="checkbox--primary">
-          <label id="pause-input__label" for="pause-input">▶</label
-          ><input
-            type="checkbox"
-            name="pause-input"
-            id="pause-input"
-            onchange="setPause(event)"
-          />
-        </div>
+      <section class="puzzle-nav">
+        <nav class="puzzle-nav__main">
+          <div class="checkbox--primary">
+            <label id="pause-input__label" for="pause-input">▶</label
+            ><input
+              type="checkbox"
+              name="pause-input"
+              id="pause-input"
+              onchange="setPause(event)"
+            />
+          </div>
 
-        <button class="btn--primary" onclick="openGenerateModal()">
-          Generate
-        </button>
+          <div class="checkbox--primary">
+            <label id="toggle-show-image__label" for="toggle-show-image"
+              >🖼🙈</label
+            ><input
+              type="checkbox"
+              name="toggle-show-image"
+              id="toggle-show-image"
+              onchange="toggleShowImage(event)"
+            />
+          </div>
 
-        <button class="btn--primary" onclick="openControlsModal()">🎮</button>
+          <div class="checkbox--primary">
+            <label for="pan-input">Pan🔒</label
+            ><input
+              type="checkbox"
+              name="pan-input"
+              id="pan-input"
+              onchange="setPanViewLock(event)"
+            />
+          </div>
 
-        <div class="checkbox--primary">
-          <label for="show-debug">📝</label
-          ><input
-            type="checkbox"
-            name="show-debug"
-            id="show-debug"
-            onchange="setDebug(event)"
-          />
-        </div>
+          <div id="zoom-input" class="btn--primary zoom-input">
+            <button
+              onmousedown="startAutoZoom(-0.1)"
+              onmouseup="stopAutoZoom()"
+              onmouseleave="stopAutoZoom()"
+              onmouseout="stopAutoZoom()"
+            >
+              -
+            </button>
+            <span>100%</span>
+            <button
+              onmousedown="startAutoZoom(0.1)"
+              onmouseup="stopAutoZoom()"
+              onmouseleave="stopAutoZoom()"
+              onmouseout="stopAutoZoom()"
+            >
+              +
+            </button>
+          </div>
+        </nav>
 
-        <div class="checkbox--primary">
-          <label id="toggle-show-image__label" for="toggle-show-image"
-            >🖼🙈</label
-          ><input
-            type="checkbox"
-            name="toggle-show-image"
-            id="toggle-show-image"
-            onchange="toggleShowImage(event)"
-          />
-        </div>
+        <nav class="puzzle-nav__menu">
+          <div class="checkbox--primary">
+            <label id="toggle-menu__label" for="toggle-menu"
+              ><svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect
+                  x="6.5"
+                  y="1.5"
+                  width="3"
+                  height="3"
+                  rx="1.5"
+                  fill="white"
+                />
+                <rect
+                  x="6.5"
+                  y="6.5"
+                  width="3"
+                  height="3"
+                  rx="1.5"
+                  fill="white"
+                />
+                <rect
+                  x="6.5"
+                  y="11.5"
+                  width="3"
+                  height="3"
+                  rx="1.5"
+                  fill="white"
+                />
+              </svg> </label
+            ><input type="checkbox" name="toggle-menu" id="toggle-menu" />
+          </div>
 
-        <div class="checkbox--primary">
-          <label for="pan-input">Pan🔒</label
-          ><input
-            type="checkbox"
-            name="pan-input"
-            id="pan-input"
-            onchange="setPanViewLock(event)"
-          />
-        </div>
-
-        <div id="zoom-input" class="btn--primary zoom-input">
-          <button
-            onmousedown="startAutoZoom(-0.1)"
-            onmouseup="stopAutoZoom()"
-            onmouseleave="stopAutoZoom()"
-            onmouseout="stopAutoZoom()"
-          >
-            -
-          </button>
-          <span>100%</span>
-          <button
-            onmousedown="startAutoZoom(0.1)"
-            onmouseup="stopAutoZoom()"
-            onmouseleave="stopAutoZoom()"
-            onmouseout="stopAutoZoom()"
-          >
-            +
-          </button>
-        </div>
-
-        <div id="music-input__wrapper" class="checkbox--primary">
-          <label for="music-input"
-            ><img src="/assets/icons/music-notes.svg" alt="Music notes" /><img
-              class="music-input__volume--on"
-              src="/assets/icons/volume-on.svg"
-              alt="Volume on" /><img
-              class="music-input__volume--off"
-              src="/assets/icons/volume-off.svg"
-              alt="Volume off" /></label
-          ><input
-            type="checkbox"
-            name="music-input"
-            id="music-input"
-            onchange="setMusicOff(event)"
-          />
-        </div>
-
-        <select
-          name="background-input"
-          id="background-input"
-          class="btn--primary"
-          onchange="onBackgroundInput(event)"
-        >
-          <option value="blue" selected>Blue</option>
-          <option value="black">Black</option>
-          <option value="white">White</option>
-          <option value="grid--black-white">Grid</option>
-        </select>
-      </nav>
+          <ul>
+            <li>
+              <button class="btn--primary" onclick="openGenerateModal()">
+                🖨 Generate
+              </button>
+            </li>
+            <li>
+              <button class="btn--primary" onclick="openControlsModal()">
+                🎮 Controls
+              </button>
+            </li>
+            <li>
+              <div class="checkbox--primary">
+                <label for="show-debug">📝 Debug</label
+                ><input
+                  type="checkbox"
+                  name="show-debug"
+                  id="show-debug"
+                  onchange="setDebug(event)"
+                />
+              </div>
+            </li>
+            <li>
+              <div id="music-input__wrapper" class="checkbox--primary">
+                <label for="music-input"
+                  >🪩 Music
+                  <img
+                    class="music-input__volume--on"
+                    src="/assets/icons/volume-on.svg"
+                    alt="Volume on" /><img
+                    class="music-input__volume--off"
+                    src="/assets/icons/volume-off.svg"
+                    alt="Volume off" /></label
+                ><input
+                  type="checkbox"
+                  name="music-input"
+                  id="music-input"
+                  onchange="setMusicOff(event)"
+                />
+              </div>
+            </li>
+            <li>
+              <div class="select--primary">
+                <label for="background-input">Background:</label>
+                <select
+                  name="background-input"
+                  id="background-input"
+                  class="btn--primary"
+                  onchange="onBackgroundInput(event)"
+                >
+                  <option value="blue" selected>Blue</option>
+                  <option value="black">Black</option>
+                  <option value="white">White</option>
+                  <option value="grid--black-white">Grid</option>
+                </select>
+              </div>
+            </li>
+          </ul>
+        </nav>
+      </section>
 
       <section id="puzzle-wrapper" class="puzzle-wrapper">
         <canvas
