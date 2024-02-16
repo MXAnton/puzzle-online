@@ -543,9 +543,9 @@ main {
   --color4: lime;
   --color5: gold;
   --color6: mediumseagreen;
-  --y: -50svh;
+  --y: calc(max(-40svh, -40svw));
   --x: -50%;
-  --initialY: 50svh;
+  --initialY: calc(min(50svh, 50svw));
   opacity: 0;
   content: "";
   animation: firework 1.6s 2;
@@ -627,7 +627,7 @@ main {
 
 .firework:nth-child(2) {
   --x: 30vmin;
-  --y: -40svh;
+  --y: calc(max(-40svh, -40svw));
 }
 
 .firework:nth-child(2),
@@ -647,7 +647,7 @@ main {
 
 .firework:nth-child(3) {
   --x: -30vmin;
-  --y: -45svh;
+  --y: calc(max(-35svh, -35svw));
 }
 
 .firework:nth-child(3),
