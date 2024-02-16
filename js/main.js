@@ -928,8 +928,9 @@ function calculatePuzzleSize(_aspectRatio) {
   puzzleRows = Math.round(puzzlePiecesAmount / puzzleColumns);
 
   // Set show image image aspect ratio to puzzle aspect ratio
-  imageShowContainer.querySelector("img").style.aspectRatio =
-    puzzleColumns / puzzleRows;
+  imageShowContainer.querySelector(
+    ".puzzle__image__wrapper"
+  ).style.aspectRatio = puzzleColumns / puzzleRows;
 
   piecesText.innerText = puzzleColumns * puzzleRows + " pieces";
 }
