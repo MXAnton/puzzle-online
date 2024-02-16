@@ -761,7 +761,7 @@ function handleMouseWheel(_event) {
   _event.preventDefault();
 
   // Adjust zoom level based on the direction of the mouse wheel
-  zoom(_event.deltaY > 0 ? -0.1 : 0.1);
+  zoom(_event.deltaY > 0 ? -0.2 : 0.2);
 }
 
 // Add event listeners for mouse events
