@@ -82,6 +82,32 @@ const imageShow = imageShowContainer.querySelector("img");
 const toggleShowImageLabel = document.getElementById(
   "toggle-show-image__label"
 );
+
+/* DROP ZONE */
+const imageDropZoneAreaElement = imageInput.closest(".dropzone-area");
+
+imageInput.addEventListener("change", (_event) => {
+  if (imageInput.files.length) {
+    updateDropzoneFileList(imageDropZoneAreaElement, imageInput.files[0]);
+  } else {
+    removeDropzoneFile(imageDropZoneAreaElement);
+  }
+});
+
+imageDropZoneAreaElement.addEventListener("dragover", (_event) => {
+  _event.preventDefault();
+
+  imageDropZoneAreaElement.classList.add("dropzone--over");
+});
+["dragleave", "dragend"].forEach((_type) => {
+  imageDropZoneAreaElement.addEventListener(_type, (_event) => {
+    imageDropZoneAreaElement.classList.remove("dropzone--over");
+  });
+});
+
+imageDropZoneAreaElement.addEventListener("drop", (_event) => {
+  onDropFileInInput(_event, imageDropZoneAreaElement);
+});
 //#endregion
 
 //#region VARS - DEBUG
@@ -933,6 +959,69 @@ function calculatePuzzleSize(_aspectRatio) {
   ).style.aspectRatio = puzzleColumns / puzzleRows;
 
   piecesText.innerText = puzzleColumns * puzzleRows + " pieces";
+}
+//#endregion
+
+//#region DROPZONE AREA
+function onDropFileInInput(_event, _dropzoneElement) {
+  _event.preventDefault();
+
+  if (_event.dataTransfer.files.length) {
+    // Make sure only one image is dropped to input
+    let droppedImages = new DataTransfer();
+    droppedImages.items.add(_event.dataTransfer.files[0]);
+
+    imageInput.files = droppedImages.files;
+    updateDropzoneFileList(_dropzoneElement, droppedImages.files[0]);
+  } else {
+    removeDropzoneFile(_dropzoneElement);
+  }
+
+  _dropzoneElement.classList.remove("dropzone--over");
+}
+
+function updateDropzoneFileList(_dropzoneElement, _file) {
+  const dropzoneFileMessage = _dropzoneElement.querySelector(".file-info");
+  dropzoneFileMessage.innerHTML = _file.name;
+  const dropzoneFileSize = _dropzoneElement.querySelector(".file-size");
+  dropzoneFileSize.innerHTML =
+    Math.round((_file.size / 1000) * 10) / 10 + " kB";
+
+  const dropzoneFileImage =
+    _dropzoneElement.querySelector(".file-upload-image");
+
+  // Check if the file is an image
+  if (_file.type.startsWith("image/")) {
+    // Create a FileReader object
+    const reader = new FileReader();
+
+    // Define the onload event callback function
+    reader.onload = function (event) {
+      // Set the src attribute of dropzoneFileImage to the data URL
+      dropzoneFileImage.src = event.target.result;
+      dropzoneFileImage.classList.add("active");
+    };
+
+    // Read the file as a data URL
+    reader.readAsDataURL(_file);
+  } else {
+    // If the file is not an image, you might want to handle this case differently
+    console.error("The selected file is not an image.");
+    removeDropzoneFile(_dropzoneElement);
+  }
+}
+
+function removeDropzoneFile(_dropzoneElement) {
+  const dropzoneFileMessage = _dropzoneElement.querySelector(".file-info");
+  dropzoneFileMessage.innerHTML = "No Image Selected";
+  const dropzoneFileSize = _dropzoneElement.querySelector(".file-size");
+  dropzoneFileSize.innerHTML = "";
+
+  const dropzoneFileImage =
+    _dropzoneElement.querySelector(".file-upload-image");
+
+  dropzoneFileImage.src = "";
+  dropzoneFileImage.classList.remove("active");
 }
 //#endregion
 

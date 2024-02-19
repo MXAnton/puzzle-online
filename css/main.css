@@ -131,6 +131,117 @@ label {
 }
 /*#endregion CHECKBOXES */
 
+/*#region DROPZONE-AREA */
+.dropzone-area {
+  position: relative;
+
+  min-height: 12rem;
+  padding: 1rem;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+
+  --color-text: var(--color--primary);
+  --color-background: var(--color--primary);
+  background-color: var(--color--background);
+  border: 2px solid var(--color--text);
+  border-radius: 0.4rem;
+  box-sizing: border-box;
+
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.dropzone-area [type="file"] {
+  cursor: pointer;
+  position: absolute;
+  opacity: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  z-index: 2;
+}
+
+.dropzone-area .file-upload-icon {
+  height: 3rem;
+  width: 100%;
+  max-width: 3rem;
+  margin-bottom: 0.5rem;
+
+  animation: fade-in 0.2s ease-in-out forwards;
+}
+.dropzone-area .file-upload-icon svg {
+  height: 100%;
+  width: 100%;
+
+  color: var(--color--text);
+
+  display: block;
+}
+
+.dropzone-area .file-upload-image {
+  height: 3rem;
+  max-width: 100%;
+  object-fit: contain;
+
+  margin-bottom: 0.5rem;
+
+  display: none;
+
+  animation: fade-in 0.2s ease-in-out forwards;
+}
+
+.dropzone-area p {
+  font-size: 1.15rem;
+  color: var(--color--text);
+}
+
+.file-info--default {
+  animation: fade-in 0.2s ease-in-out forwards;
+}
+.file-info--hover {
+  display: none;
+  animation: fade-in 0.6s ease-in-out infinite alternate;
+}
+
+/* FILE SELECTED */
+.dropzone-area .file-upload-image.active {
+  display: block;
+}
+.dropzone-area:has(.file-upload-image.active) .file-upload-icon {
+  display: none;
+}
+
+/* HOVER */
+.dropzone-area:hover {
+  border-color: var(--yellow);
+  border-style: dashed;
+}
+.dropzone-area:hover:has(.file-upload-image.active) .file-info--default {
+  display: none;
+}
+.dropzone-area:hover:has(.file-upload-image.active) .file-info--hover {
+  display: block;
+}
+
+/* FILE HOVER */
+.dropzone--over {
+  border-color: var(--yellow);
+  border-style: dashed;
+}
+.dropzone--over:has(.file-upload-image.active) .file-info--default {
+  display: none;
+}
+.dropzone--over:has(.file-upload-image.active) .file-info--hover {
+  display: block;
+}
+/*#endregion DROPZONE-AREA */
+
 /*#region ZOOM INPUT */
 .zoom-input {
   font-size: 1rem;
@@ -693,5 +804,14 @@ main {
   height: 100%;
 
   background-color: var(--color--text);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 /*#endregion GENERAL */
