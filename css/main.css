@@ -135,6 +135,8 @@ label {
 .dropzone-area {
   position: relative;
 
+  overflow: hidden;
+
   min-height: 12rem;
   padding: 1rem;
 
@@ -152,7 +154,6 @@ label {
   box-sizing: border-box;
 
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
 }
 
 .dropzone-area [type="file"] {
@@ -217,26 +218,41 @@ label {
   display: none;
 }
 
-/* HOVER */
-.dropzone-area:hover {
-  border-color: var(--yellow);
-  border-style: dashed;
+/* HOVER & FILE HOVER */
+.dropzone-area:hover,
+.dropzone--over {
+  border: none;
+  z-index: 2;
 }
-.dropzone-area:hover:has(.file-upload-image.active) .file-info--default {
-  display: none;
+.dropzone-area:hover::before,
+.dropzone--over::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+
+  width: 120%;
+  height: 50%;
+
+  background-color: var(--color--text);
+
+  animation: rotate-360 5s linear infinite;
 }
-.dropzone-area:hover:has(.file-upload-image.active) .file-info--hover {
-  display: block;
+.dropzone-area:hover::after,
+.dropzone--over::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+
+  inset: 2px;
+  background-color: var(--color--background);
+  border-radius: calc(0.4rem - 2px);
 }
 
-/* FILE HOVER */
-.dropzone--over {
-  border-color: var(--yellow);
-  border-style: dashed;
-}
+.dropzone-area:hover:has(.file-upload-image.active) .file-info--default,
 .dropzone--over:has(.file-upload-image.active) .file-info--default {
   display: none;
 }
+.dropzone-area:hover:has(.file-upload-image.active) .file-info--hover,
 .dropzone--over:has(.file-upload-image.active) .file-info--hover {
   display: block;
 }
@@ -812,6 +828,15 @@ main {
   }
   to {
     opacity: 1;
+  }
+}
+
+@keyframes rotate-360 {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 /*#endregion GENERAL */
