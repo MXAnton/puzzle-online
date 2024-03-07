@@ -57,6 +57,8 @@ The hardest thing so far I think have been to draw things in the correct place a
 - [x] No need to draw pieces that are outside of canvas.
 - [x] Update GUI to display controls and timer nicer. 
 - [x] Change background and border of puzzle board/canvas to make it look nicer and easier to see difference between canvas and outside of canvas.
+- [ ] Store music setting in local storage.
+- [ ] Merge matched pieces into one bigger piece to make moving and drawing them more efficient.
 - [ ] Add user accounts and the ability to save generated puzzle on account.
 - [ ] Add ability to save progress on puzzle on account.
 - [ ] Store user puzzle time records and display it.
