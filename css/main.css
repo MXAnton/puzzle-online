@@ -798,6 +798,59 @@ main {
 }
 /*#endregion FIREWORKS */
 
+/*#region github */
+.github {
+  font-size: 1rem;
+
+  width: 2em;
+  aspect-ratio: 1/1;
+
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+
+  z-index: 4;
+
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+
+  border-radius: 1000%;
+
+  transition: all 0.2s ease-in-out;
+}
+.github img {
+  width: 100%;
+  height: 100%;
+}
+.github::before {
+  content: "";
+
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+
+  width: 100%;
+  height: 100%;
+
+  transform: translateX(-50%) translateY(-50%);
+
+  background: url("/assets/icons/github-mark-black.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-blend-mode: darken;
+
+  pointer-events: none;
+
+  transition: all 0.2s ease-in-out;
+}
+.github:hover::before {
+  transform: translateX(-50%) translateY(-60%) scale(250%);
+}
+/*#endregion github */
+
 /*#region GENERAL */
 .bg--blue {
   background: var(--blue--dark);
